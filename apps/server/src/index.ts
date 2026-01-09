@@ -13,6 +13,7 @@ import { registerTagRoutes } from "./routes/tags.js";
 import { registerCustomFieldRoutes } from "./routes/customFields.js";
 import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerAnalyticsRoutes } from "./routes/analytics.js";
+import { registerComplianceRoutes } from "./routes/compliance.js";
 
 async function main() {
   const server = Fastify({
@@ -51,6 +52,7 @@ async function main() {
       await registerCustomFieldRoutes(app);
       await registerAttachmentRoutes(app);
       await registerAnalyticsRoutes(app);
+      await registerComplianceRoutes(app);
     },
     { prefix: "/api" }
   );

@@ -8,6 +8,20 @@
       "when": 0,
       "tag": "0000_init",
       "breakpoints": false
+    },
+    {
+      "idx": 1,
+      "version": 5,
+      "when": 1,
+      "tag": "0001_compliance",
+      "breakpoints": false
+    },
+    {
+      "idx": 2,
+      "version": 5,
+      "when": 2,
+      "tag": "0002_emotions",
+      "breakpoints": false
     }
   ]
 }

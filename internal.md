@@ -70,3 +70,35 @@
 - 仅后端：`npm --workspace apps/server run dev`。
 - 仅前端：`npm --workspace apps/web run dev`，可用 `VITE_API_BASE` 指向自定义 API。
 - 迁移：`npm run migrate`；种子数据：`npm run seed`。
+
+---
+
+## 数据库表设计（当前）
+- records：datetime、symbol、account_type、result、r_multiple、complied（派生）、notes、created_at、updated_at。
+- tags / record_tags：标签主表和记录↔标签关系。
+- attachments：上传文件，含 record_id、mime、尺寸、file_path（文件在 `data/uploads`）。
+- custom_fields / custom_field_options / record_field_values：自定义字段定义及记录值（text/number/boolean/singleSelect/multiSelect/date/datetime）。
+- compliance_checks：合规检查项，type 为 `checkbox` 或 `setup`。
+- compliance_check_options：setup 类型的选项，按 sort_order 排序。
+- record_compliance：记录的合规选项（checkbox 用 is_checked，setup 用 option_id）。
+
+## 后端如何与数据库交互
+- Drizzle schema：`apps/server/src/db/schema.ts` 定义表；SQLite 由 better-sqlite3 驱动。
+- Migrations：`apps/server/drizzle/migrations/*.sql`（0001_compliance.sql 添加合规相关表）；`npm --workspace apps/server run migrate` 应用。
+- Services：
+  - `services/records.ts`：CRUD，写入标签/自定义字段/附件/合规选项，计算 complied = 所有 checkbox 为真且 setup 选了非 None。
+  - `services/compliance.ts`：合规检查项与选项的 CRUD。
+  - `services/analytics.ts`：基于 r_multiple 的统计，配合 `services/filters.ts` 构造查询。
+- Routes（`apps/server/src/routes/*` 挂载到 `/api`）：`/records`、`/records/bulk/*`、`/attachments`、`/tags`、`/custom-fields`、`/analytics/*`、`/compliance-checks`。
+- 上传与静态：`apps/server/src/routes/attachments.ts` + `db/client.ts` 创建 uploads 目录并通过 Fastify static 提供 `/uploads/*`。
+
+## 前端如何与后端交互
+- 共享类型：`packages/shared/src/index.ts` 定义 Zod schema/TypeScript 类型，两端共用。
+- API 客户端：`apps/web/src/api/client.ts` 封装 fetch，调用上述 `/api/*` 路由。
+- 记录相关：
+  - `components/RecordForm.tsx`：加载 tags/custom fields/compliance checks；提交时携带 `complianceSelections`，本地展示合规状态。
+  - `pages/RecordsPage.tsx`：获取 records 与 analytics，渲染卡片（`RecordCard.tsx` 展示附件/合规状态/灯箱）。
+- 设置：
+  - `pages/SettingsTagsPage.tsx`：管理标签，并在同页管理合规检查项/选项（无需单独页面）。
+  - `pages/SettingsFieldsPage.tsx`：管理自定义字段。
+- 分析：`pages/AnalysisPage.tsx` 调用 `/analytics/summary` 和 `/analytics/groupBy`，展示 R-based 指标。

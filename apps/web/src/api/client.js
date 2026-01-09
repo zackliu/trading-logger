@@ -27,6 +27,8 @@ const queryFromFilters = (filters) => {
     filters.tagIds?.forEach((t) => params.append("tagIds", String(t)));
     filters.accountTypes?.forEach((a) => params.append("accountTypes", a));
     filters.results?.forEach((r) => params.append("results", r));
+    filters.entryEmotion?.forEach((e) => params.append("entryEmotion", e));
+    filters.exitEmotion?.forEach((e) => params.append("exitEmotion", e));
     if (filters.complied !== undefined)
         params.set("complied", String(filters.complied));
     if (filters.customFieldFilters?.length) {
@@ -129,6 +131,26 @@ export const api = {
         const qs = queryFromFilters(filters);
         const connector = qs ? "&" : "?";
         return request(`/analytics/groupBy${qs}${connector}by=${encodeURIComponent(by)}`);
+    },
+    async listComplianceChecks() {
+        return request(`/compliance-checks`);
+    },
+    async createComplianceCheck(data) {
+        return request(`/compliance-checks`, {
+            method: "POST",
+            body: JSON.stringify(data)
+        });
+    },
+    async updateComplianceCheck(id, data) {
+        return request(`/compliance-checks/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(data)
+        });
+    },
+    async deleteComplianceCheck(id) {
+        return request(`/compliance-checks/${id}`, {
+            method: "DELETE"
+        });
     }
 };
 export const getAttachmentUrl = (filePath) => {

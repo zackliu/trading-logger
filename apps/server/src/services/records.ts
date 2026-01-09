@@ -1,4 +1,5 @@
 import {
+  ComplianceSelection,
   CustomFieldValue,
   RecordFilters,
   RecordInput,
@@ -10,6 +11,7 @@ import { sqlite, uploadsDir } from "../db/client.js";
 import { buildRecordWhereClause, normalizeFilters } from "./filters.js";
 import fs from "fs";
 import path from "path";
+import { listComplianceChecks } from "./compliance.js";
 
 type RecordRow = {
   id: number;
@@ -18,6 +20,8 @@ type RecordRow = {
   account_type: string;
   result: string;
   r_multiple: number | null;
+  entry_emotion: string | null;
+  exit_emotion: string | null;
   complied: number;
   notes: string;
   created_at: string;
@@ -58,13 +62,16 @@ function mapRecords(rows: RecordRow[]): RecordWithRelations[] {
     accountType: row.account_type as any,
     result: row.result as any,
     rMultiple: row.r_multiple,
+    entryEmotion: row.entry_emotion ?? undefined,
+    exitEmotion: row.exit_emotion ?? undefined,
     complied: !!row.complied,
     notes: row.notes ?? "",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     tags: [],
     attachments: [],
-    customValues: []
+    customValues: [],
+    complianceSelections: []
   }));
 }
 
@@ -191,6 +198,60 @@ function attachRelations(
   }
 
   return records;
+}
+
+function mapComplianceSelections(recordId: number): ComplianceSelection[] {
+  const rows = sqlite
+    .prepare(
+      `SELECT * FROM record_compliance WHERE record_id = ? ORDER BY id ASC`
+    )
+    .all(recordId) as any[];
+  return rows.map((row) => {
+    if (row.option_id !== null && row.option_id !== undefined) {
+      return {
+        type: "setup",
+        checkId: row.check_id,
+        optionId: row.option_id
+      } as ComplianceSelection;
+    }
+    return {
+      type: "checkbox",
+      checkId: row.check_id,
+      checked: !!row.is_checked
+    } as ComplianceSelection;
+  });
+}
+
+function setComplianceSelections(recordId: number, selections: ComplianceSelection[]) {
+  sqlite.prepare(`DELETE FROM record_compliance WHERE record_id = ?`).run(recordId);
+  if (!selections.length) return;
+  const stmt = sqlite.prepare(
+    `INSERT INTO record_compliance (record_id, check_id, is_checked, option_id) VALUES (?, ?, ?, ?)`
+  );
+  selections.forEach((sel) => {
+    if (sel.type === "checkbox") {
+      stmt.run(recordId, sel.checkId, sel.checked ? 1 : 0, null);
+    } else {
+      stmt.run(recordId, sel.checkId, null, sel.optionId ?? null);
+    }
+  });
+}
+
+function computeComplied(
+  selections: ComplianceSelection[],
+  fallback: boolean
+): boolean {
+  const checks = listComplianceChecks();
+  if (!checks.length) return fallback;
+  for (const c of checks) {
+    const sel = selections.find((s) => s.checkId === c.id);
+    if (c.type === "checkbox") {
+      if (!sel || sel.type !== "checkbox" || !sel.checked) return false;
+    } else {
+      if (!sel || sel.type !== "setup" || sel.optionId === null) return false;
+    }
+  }
+  return true;
 }
 
 function setRecordTags(recordId: number, tagIds: number[]) {
@@ -388,8 +449,14 @@ export function listRecords(
     .all(...recordIds) as CustomValueRow[];
 
   const mapped = mapRecords(rows);
+  const withRelations = attachRelations(mapped, tagRows, attachmentRows, customValueRows);
+  withRelations.forEach((rec) => {
+    rec.complianceSelections = mapComplianceSelections(rec.id!);
+    rec.entryEmotion = (rows.find((r) => r.id === rec.id)?.entry_emotion) ?? undefined;
+    rec.exitEmotion = (rows.find((r) => r.id === rec.id)?.exit_emotion) ?? undefined;
+  });
   return {
-    items: attachRelations(mapped, tagRows, attachmentRows, customValueRows),
+    items: withRelations,
     total
   };
 }
@@ -415,7 +482,9 @@ export function getRecordById(id: number): RecordWithRelations | null {
     .all(id) as CustomValueRow[];
 
   const mapped = mapRecords([row])[0];
-  return attachRelations([mapped], tags, attachments, customValues)[0];
+  const withRelations = attachRelations([mapped], tags, attachments, customValues)[0];
+  withRelations.complianceSelections = mapComplianceSelections(id);
+  return withRelations;
 }
 
 export function createRecord(input: RecordInput): RecordWithRelations {
@@ -423,7 +492,7 @@ export function createRecord(input: RecordInput): RecordWithRelations {
   const trx = sqlite.transaction(() => {
     const info = sqlite
       .prepare(
-        `INSERT INTO records (datetime, symbol, account_type, result, pnl, risk_amount, r_multiple, complied, notes, created_at, updated_at)
+        `INSERT INTO records (datetime, symbol, account_type, result, r_multiple, entry_emotion, exit_emotion, complied, notes, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
@@ -431,10 +500,10 @@ export function createRecord(input: RecordInput): RecordWithRelations {
         input.symbol,
         input.accountType,
         input.result,
-        0,
-        0,
         input.rMultiple ?? null,
-        input.complied ? 1 : 0,
+        input.entryEmotion ?? null,
+        input.exitEmotion ?? null,
+        0,
         input.notes ?? "",
         now,
         now
@@ -443,6 +512,20 @@ export function createRecord(input: RecordInput): RecordWithRelations {
     setRecordTags(recordId, input.tagIds ?? []);
     setRecordCustomValues(recordId, input.customValues ?? []);
     setRecordAttachments(recordId, input.attachmentIds ?? []);
+    setComplianceSelections(recordId, input.complianceSelections ?? []);
+    const computedComplied = computeComplied(
+      input.complianceSelections ?? [],
+      input.complied ?? false
+    );
+    sqlite.prepare(`UPDATE records SET complied = ? WHERE id = ?`).run(
+      computedComplied ? 1 : 0,
+      recordId
+    );
+    sqlite
+      .prepare(
+        `UPDATE records SET entry_emotion = ?, exit_emotion = ? WHERE id = ?`
+      )
+      .run(input.entryEmotion ?? null, input.exitEmotion ?? null, recordId);
     return recordId;
   });
   const recordId = trx();
@@ -463,19 +546,19 @@ export function updateRecord(id: number, input: RecordUpdate) {
     const existing = { ...current, ...input };
     sqlite
       .prepare(
-        `UPDATE records SET datetime = ?, symbol = ?, account_type = ?, result = ?, pnl = ?, risk_amount = ?, r_multiple = ?, complied = ?, notes = ?, updated_at = ? WHERE id = ?`
+        `UPDATE records SET datetime = ?, symbol = ?, account_type = ?, result = ?, r_multiple = ?, complied = ?, notes = ?, updated_at = ?, entry_emotion = ?, exit_emotion = ? WHERE id = ?`
       )
       .run(
         existing.datetime,
         existing.symbol,
         existing.accountType,
         existing.result,
-        0,
-        0,
         existing.rMultiple ?? null,
         existing.complied ? 1 : 0,
         existing.notes ?? "",
         now,
+        existing.entryEmotion ?? null,
+        existing.exitEmotion ?? null,
         id
       );
     if (input.tagIds) {
@@ -487,6 +570,22 @@ export function updateRecord(id: number, input: RecordUpdate) {
     if (input.attachmentIds) {
       setRecordAttachments(id, input.attachmentIds);
     }
+    if (input.complianceSelections) {
+      setComplianceSelections(id, input.complianceSelections);
+    }
+    const computedComplied = computeComplied(
+      input.complianceSelections ?? current.complianceSelections ?? [],
+      input.complied ?? current.complied
+    );
+    sqlite.prepare(`UPDATE records SET complied = ? WHERE id = ?`).run(
+      computedComplied ? 1 : 0,
+      id
+    );
+    sqlite
+      .prepare(
+        `UPDATE records SET entry_emotion = ?, exit_emotion = ? WHERE id = ?`
+      )
+      .run(existing.entryEmotion ?? null, existing.exitEmotion ?? null, id);
   });
   trx();
   const record = getRecordById(id);

@@ -7,7 +7,8 @@ import {
   RecordUpdate,
   RecordWithRelations,
   Tag,
-  PaginatedRecords
+  PaginatedRecords,
+  ComplianceCheck
 } from "@trading-logger/shared";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
@@ -40,6 +41,8 @@ const queryFromFilters = (filters: Partial<RecordFilters>) => {
   filters.tagIds?.forEach((t) => params.append("tagIds", String(t)));
   filters.accountTypes?.forEach((a) => params.append("accountTypes", a));
   filters.results?.forEach((r) => params.append("results", r));
+  filters.entryEmotion?.forEach((e) => params.append("entryEmotion", e));
+  filters.exitEmotion?.forEach((e) => params.append("exitEmotion", e));
   if (filters.complied !== undefined)
     params.set("complied", String(filters.complied));
   if (filters.customFieldFilters?.length) {
@@ -153,6 +156,26 @@ export const api = {
     return request<BreakdownRow[]>(
       `/analytics/groupBy${qs}${connector}by=${encodeURIComponent(by)}`
     );
+  },
+  async listComplianceChecks() {
+    return request<ComplianceCheck[]>(`/compliance-checks`);
+  },
+  async createComplianceCheck(data: any) {
+    return request<ComplianceCheck>(`/compliance-checks`, {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
+  },
+  async updateComplianceCheck(id: number, data: any) {
+    return request<{ success: boolean }>(`/compliance-checks/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data)
+    });
+  },
+  async deleteComplianceCheck(id: number) {
+    return request<{ success: boolean }>(`/compliance-checks/${id}`, {
+      method: "DELETE"
+    });
   }
 };
 

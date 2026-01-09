@@ -15,6 +15,8 @@ export function normalizeFilters(filters: Partial<RecordFilters>): RecordFilters
       ? filters.accountTypes
       : undefined,
     results: filters.results?.length ? filters.results : undefined,
+    entryEmotion: filters.entryEmotion?.length ? filters.entryEmotion : undefined,
+    exitEmotion: filters.exitEmotion?.length ? filters.exitEmotion : undefined,
     customFieldFilters: filters.customFieldFilters?.filter(Boolean)
   };
 }
@@ -56,6 +58,18 @@ export function buildRecordWhereClause(filters: RecordFilters) {
   if (filters.results?.length) {
     clauses.push(`r.result IN (${placeholder(filters.results.length)})`);
     params.push(...filters.results);
+  }
+  if (filters.entryEmotion?.length) {
+    clauses.push(
+      `r.entry_emotion IN (${placeholder(filters.entryEmotion.length)})`
+    );
+    params.push(...filters.entryEmotion);
+  }
+  if (filters.exitEmotion?.length) {
+    clauses.push(
+      `r.exit_emotion IN (${placeholder(filters.exitEmotion.length)})`
+    );
+    params.push(...filters.exitEmotion);
   }
 
   for (const cf of filters.customFieldFilters ?? []) {

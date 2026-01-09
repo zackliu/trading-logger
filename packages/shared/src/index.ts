@@ -24,6 +24,40 @@ export const CustomFieldTypeEnum = z.enum([
 export type CustomFieldType = z.infer<typeof CustomFieldTypeEnum>;
 
 // Base schemas
+export const ComplianceCheckTypeEnum = z.enum(["checkbox", "setup"]);
+export type ComplianceCheckType = z.infer<typeof ComplianceCheckTypeEnum>;
+
+export const ComplianceOptionSchema = z.object({
+  id: z.number().int().positive().optional(),
+  checkId: z.number().int().positive().optional(),
+  label: z.string(),
+  sortOrder: z.number().int().optional()
+});
+export type ComplianceOption = z.infer<typeof ComplianceOptionSchema>;
+
+export const ComplianceCheckSchema = z.object({
+  id: z.number().int().positive().optional(),
+  label: z.string().min(1),
+  type: ComplianceCheckTypeEnum,
+  options: z.array(ComplianceOptionSchema).optional(),
+  createdAt: z.string().datetime().optional()
+});
+export type ComplianceCheck = z.infer<typeof ComplianceCheckSchema>;
+
+export const EmotionEnum = z.enum([
+  "fear",
+  "greed",
+  "anger",
+  "overconfidence",
+  "regret",
+  "hope",
+  "boredom",
+  "fatigue",
+  "confusion",
+  "calm"
+]);
+export type Emotion = z.infer<typeof EmotionEnum>;
+
 export const TagSchema = z.object({
   id: z.number().int().positive().optional(),
   name: z.string().min(1),
@@ -43,6 +77,20 @@ export const AttachmentSchema = z.object({
   createdAt: z.string().datetime().optional()
 });
 export type Attachment = z.infer<typeof AttachmentSchema>;
+
+export const ComplianceSelectionSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("checkbox"),
+    checkId: z.number().int().positive(),
+    checked: z.boolean().default(false)
+  }),
+  z.object({
+    type: z.literal("setup"),
+    checkId: z.number().int().positive(),
+    optionId: z.number().int().positive().nullable().default(null)
+  })
+]);
+export type ComplianceSelection = z.infer<typeof ComplianceSelectionSchema>;
 
 export const CustomFieldOptionSchema = z.object({
   id: z.number().int().positive().optional(),
@@ -111,6 +159,8 @@ export const RecordBaseSchema = z.object({
   accountType: AccountTypeEnum,
   result: ResultTypeEnum,
   rMultiple: z.number().nullable().optional(),
+  entryEmotion: EmotionEnum.optional(),
+  exitEmotion: EmotionEnum.optional(),
   complied: z.boolean(),
   notes: z.string().default(""),
   createdAt: z.string().datetime().optional(),
@@ -127,7 +177,10 @@ export const RecordInputSchema = RecordBaseSchema.omit({
   rMultiple: z.number().nullable().default(null),
   tagIds: z.array(z.number().int()).default([]),
   customValues: z.array(CustomFieldValueSchema).default([]),
-  attachmentIds: z.array(z.number().int()).default([])
+  attachmentIds: z.array(z.number().int()).default([]),
+  entryEmotion: EmotionEnum.optional(),
+  exitEmotion: EmotionEnum.optional(),
+  complianceSelections: z.array(ComplianceSelectionSchema).default([])
 });
 export type RecordInput = z.infer<typeof RecordInputSchema>;
 
@@ -139,7 +192,8 @@ export type RecordUpdate = z.infer<typeof RecordUpdateSchema>;
 export const RecordWithRelationsSchema = RecordBaseSchema.extend({
   tags: z.array(TagSchema),
   attachments: z.array(AttachmentSchema),
-  customValues: z.array(CustomFieldValueSchema)
+  customValues: z.array(CustomFieldValueSchema),
+  complianceSelections: z.array(ComplianceSelectionSchema)
 });
 export type RecordWithRelations = z.infer<typeof RecordWithRelationsSchema>;
 
@@ -199,6 +253,8 @@ export const RecordFilterSchema = DateRangeSchema.extend({
   complied: z.boolean().optional(),
   accountTypes: z.array(AccountTypeEnum).optional(),
   results: z.array(ResultTypeEnum).optional(),
+  entryEmotion: z.array(EmotionEnum).optional(),
+  exitEmotion: z.array(EmotionEnum).optional(),
   customFieldFilters: z.array(CustomFieldFilterSchema).optional()
 }).merge(PaginationSchema.partial());
 export type RecordFilters = z.infer<typeof RecordFilterSchema>;

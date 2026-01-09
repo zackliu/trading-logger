@@ -11,9 +11,9 @@ export const records = sqliteTable("records", {
   symbol: text("symbol").notNull(),
   accountType: text("account_type").notNull(),
   result: text("result").notNull(),
-  pnl: real("pnl").notNull(),
-  riskAmount: real("risk_amount").notNull(),
   rMultiple: real("r_multiple"),
+  entryEmotion: text("entry_emotion"),
+  exitEmotion: text("exit_emotion"),
   complied: integer("complied", { mode: "boolean" }).notNull().default(false),
   notes: text("notes").notNull().default(""),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
@@ -86,4 +86,34 @@ export const recordFieldValues = sqliteTable("record_field_values", {
   valueDatetime: text("value_datetime"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP")
+});
+
+export const complianceChecks = sqliteTable("compliance_checks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  label: text("label").notNull(),
+  type: text("type").notNull(),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP")
+});
+
+export const complianceCheckOptions = sqliteTable("compliance_check_options", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  checkId: integer("check_id")
+    .notNull()
+    .references(() => complianceChecks.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  sortOrder: integer("sort_order").default(0)
+});
+
+export const recordCompliance = sqliteTable("record_compliance", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  recordId: integer("record_id")
+    .notNull()
+    .references(() => records.id, { onDelete: "cascade" }),
+  checkId: integer("check_id")
+    .notNull()
+    .references(() => complianceChecks.id, { onDelete: "cascade" }),
+  isChecked: integer("is_checked", { mode: "boolean" }),
+  optionId: integer("option_id").references(() => complianceCheckOptions.id, {
+    onDelete: "set null"
+  })
 });

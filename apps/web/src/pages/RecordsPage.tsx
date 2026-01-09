@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AnalyticsSummary,
@@ -9,7 +9,8 @@ import {
   RecordInput,
   RecordUpdate,
   RecordWithRelations,
-  Tag
+  Tag,
+  ComplianceCheck
 } from "@trading-logger/shared";
 import { api } from "../api/client";
 import RecordForm from "../components/RecordForm";
@@ -31,6 +32,10 @@ export default function RecordsPage() {
   const { data: customFields = [] } = useQuery<CustomField[]>({
     queryKey: ["customFields"],
     queryFn: api.listCustomFields
+  });
+  const { data: complianceChecks = [] } = useQuery<ComplianceCheck[]>({
+    queryKey: ["complianceChecks"],
+    queryFn: api.listComplianceChecks
   });
 
   const recordQuery = useQuery<PaginatedRecords>({
@@ -164,6 +169,7 @@ export default function RecordsPage() {
               initial={formMode === "edit" ? editing : null}
               tags={tags}
               customFields={customFields}
+              complianceChecks={complianceChecks}
               onSaved={handleSave}
               onCancel={() => {
                 setFormMode(null);
@@ -242,6 +248,18 @@ function FilterPanel({
   onChange: (f: Partial<RecordFilters>) => void;
   onReset: () => void;
 }) {
+  const emotions = [
+  { value: "fear", label: "恐惧/焦虑" },
+  { value: "greed", label: "贪婪/兴奋" },
+  { value: "anger", label: "愤怒/报复" },
+  { value: "overconfidence", label: "自负/亢奋" },
+  { value: "regret", label: "懊悔/错过恐惧" },
+  { value: "hope", label: "希望/否认" },
+  { value: "boredom", label: "无聊/寻刺激" },
+  { value: "fatigue", label: "疲劳/麻木" },
+  { value: "confusion", label: "困惑/信息过载" },
+  { value: "calm", label: "平静/专注" }
+];
   return (
     <div className="card" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }}>
@@ -379,6 +397,46 @@ function FilterPanel({
             ))}
           </select>
         </label>
+        <label>
+          <div>Entry Emotion</div>
+          <select
+            className="select"
+            value={filters.entryEmotion?.[0] ?? ""}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                entryEmotion: e.target.value ? [e.target.value as any] : undefined
+              })
+            }
+          >
+            <option value="">Any</option>
+            {emotions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <div>Exit Emotion</div>
+          <select
+            className="select"
+            value={filters.exitEmotion?.[0] ?? ""}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                exitEmotion: e.target.value ? [e.target.value as any] : undefined
+              })
+            }
+          >
+            <option value="">Any</option>
+            {emotions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
     </div>
   );
@@ -481,3 +539,4 @@ function Breakdown({ title, rows }: { title: string; rows: BreakdownRow[] }) {
     </div>
   );
 }
+
