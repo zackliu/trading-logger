@@ -146,15 +146,22 @@ function FilterPanel({ filters, tags, onChange, onReset }) {
                                 }), children: [_jsx("option", { value: "", children: "All" }), tags?.map((tag) => (_jsx("option", { value: tag.id, children: tag.name }, tag.id)))] })] })] })] }));
 }
 function AnalyticsPanel({ summary, loading, tagRows, resultRows }) {
-    return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Analysis" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Updates instantly with filters" })] }), loading && _jsx("div", { children: "Loading..." }), summary && (_jsxs("div", { className: "analytics-grid", children: [_jsx(Stat, { label: "Trades", value: summary.totalTrades }), _jsx(Stat, { label: "Win Rate", value: `${(summary.winRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "Expectancy", value: summary.expectancy ?? 0 }), _jsx(Stat, { label: "Profit Factor", value: summary.profitFactor ?? 0 }), _jsx(Stat, { label: "Avg R", value: summary.avgR ?? 0 }), _jsx(Stat, { label: "Payoff Ratio", value: summary.payoffRatio ?? 0 })] })), _jsx(Breakdown, { title: "By Result", rows: resultRows }), _jsx(Breakdown, { title: "Top Tags", rows: tagRows })] }));
+    return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Analysis" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Updates instantly with filters" })] }), loading && _jsx("div", { children: "Loading..." }), summary && (_jsxs("div", { className: "analytics-grid", children: [_jsx(Stat, { label: "Trades", value: summary.totalTrades }), _jsx(Stat, { label: "Win Rate", value: `${(summary.winRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "Profit Factor", value: summary.profitFactor }), _jsx(Stat, { label: "Expectancy (R)", value: summary.expectancy }), _jsx(Stat, { label: "Avg R", value: summary.avgR }), _jsx(Stat, { label: "Avg Win R", value: summary.avgWinR }), _jsx(Stat, { label: "Avg Loss R", value: summary.avgLossR }), _jsx(Stat, { label: "Payoff Ratio", value: summary.payoffRatio })] })), _jsx(Breakdown, { title: "By Result", rows: resultRows }), _jsx(Breakdown, { title: "Top Tags", rows: tagRows })] }));
 }
 function Stat({ label, value }) {
+    const formatValue = (v) => {
+        if (v === null || v === undefined)
+            return "-";
+        if (typeof v === "number" && Number.isFinite(v))
+            return v.toFixed(2);
+        return v;
+    };
     return (_jsxs("div", { style: {
             background: "rgba(255,255,255,0.04)",
             border: "1px solid rgba(255,255,255,0.05)",
             borderRadius: 12,
             padding: "0.7rem 0.8rem"
-        }, children: [_jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: label }), _jsx("div", { style: { fontWeight: 700 }, children: value })] }));
+        }, children: [_jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: label }), _jsx("div", { style: { fontWeight: 700 }, children: formatValue(value) })] }));
 }
 function Breakdown({ title, rows }) {
     const top = rows.slice(0, 4);

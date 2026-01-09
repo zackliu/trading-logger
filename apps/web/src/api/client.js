@@ -29,10 +29,6 @@ const queryFromFilters = (filters) => {
     filters.results?.forEach((r) => params.append("results", r));
     if (filters.complied !== undefined)
         params.set("complied", String(filters.complied));
-    if (filters.minPnl !== undefined)
-        params.set("minPnl", String(filters.minPnl));
-    if (filters.maxPnl !== undefined)
-        params.set("maxPnl", String(filters.maxPnl));
     if (filters.customFieldFilters?.length) {
         params.set("customFieldFilters", JSON.stringify(filters.customFieldFilters));
     }

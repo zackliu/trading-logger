@@ -2,13 +2,12 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from "react";
 import { api, getAttachmentUrl } from "../api/client";
 import { toInputDateTime, toIsoFromLocal } from "../utils/format";
+import clsx from "clsx";
 const defaultState = () => ({
     datetime: new Date().toISOString(),
     symbol: "",
     accountType: "sim",
     result: "takeProfit",
-    pnl: 0,
-    riskAmount: 0,
     rMultiple: null,
     complied: false,
     notes: "",
@@ -23,8 +22,6 @@ export default function RecordForm({ initial, tags, customFields, onSaved, onCan
             symbol: initial.symbol,
             accountType: initial.accountType,
             result: initial.result,
-            pnl: initial.pnl,
-            riskAmount: initial.riskAmount,
             rMultiple: initial.rMultiple ?? null,
             complied: initial.complied,
             notes: initial.notes ?? "",
@@ -44,6 +41,7 @@ export default function RecordForm({ initial, tags, customFields, onSaved, onCan
     const [attachmentPreview, setAttachmentPreview] = useState(initial?.attachments[0]?.filePath
         ? getAttachmentUrl(initial.attachments[0].filePath)
         : undefined);
+    const [dragging, setDragging] = useState(false);
     useEffect(() => {
         if (initial) {
             setState((prev) => ({
@@ -107,12 +105,32 @@ export default function RecordForm({ initial, tags, customFields, onSaved, onCan
             setUploading(false);
         }
     };
+    const tryHandleFile = (file) => {
+        if (!file)
+            return;
+        if (!["image/png", "image/jpeg", "image/webp"].includes(file.type))
+            return;
+        uploadFile(file);
+    };
+    const handlePaste = (e) => {
+        const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+        if (item) {
+            const file = item.getAsFile();
+            tryHandleFile(file);
+        }
+    };
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        tryHandleFile(file);
+    };
     return (_jsxs("form", { className: "card", onSubmit: onSubmit, style: { marginBottom: "0.5rem" }, children: [_jsxs("div", { style: { display: "flex", gap: "1rem", flexWrap: "wrap" }, children: [_jsxs("label", { style: { flex: "1 1 220px" }, children: [_jsx("div", { children: "Date & Time" }), _jsx("input", { className: "input", type: "datetime-local", value: toInputDateTime(state.datetime), onChange: (e) => setField("datetime", e.target.value) })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Symbol" }), _jsx("input", { className: "input", value: state.symbol, onChange: (e) => setField("symbol", e.target.value), placeholder: "AAPL, BTCUSDT..." })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Account" }), _jsxs("select", { className: "select", value: state.accountType, onChange: (e) => setField("accountType", e.target.value), children: [_jsx("option", { value: "live", children: "Live" }), _jsx("option", { value: "sim", children: "Sim" })] })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Result" }), _jsxs("select", { className: "select", value: state.result, onChange: (e) => setField("result", e.target.value), children: [_jsx("option", { value: "takeProfit", children: "Take Profit" }), _jsx("option", { value: "stopLoss", children: "Stop Loss" }), _jsx("option", { value: "breakeven", children: "Breakeven" }), _jsx("option", { value: "manualExit", children: "Manual Exit" })] })] })] }), _jsxs("div", { style: {
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                     gap: "0.75rem",
                     marginTop: "0.75rem"
-                }, children: [_jsxs("label", { children: [_jsx("div", { children: "PNL" }), _jsx("input", { className: "input", type: "number", value: state.pnl, onChange: (e) => setField("pnl", Number(e.target.value)) })] }), _jsxs("label", { children: [_jsx("div", { children: "Risk Amount" }), _jsx("input", { className: "input", type: "number", value: state.riskAmount, onChange: (e) => setField("riskAmount", Number(e.target.value)) })] }), _jsxs("label", { children: [_jsx("div", { children: "R Multiple" }), _jsx("input", { className: "input", type: "number", value: state.rMultiple ?? "", onChange: (e) => setField("rMultiple", e.target.value === "" ? null : Number(e.target.value)) })] }), _jsxs("label", { style: { display: "flex", alignItems: "center", gap: "0.5rem" }, children: [_jsx("input", { type: "checkbox", checked: state.complied, onChange: (e) => setField("complied", e.target.checked) }), _jsx("span", { children: "Complied with rules" })] })] }), _jsxs("div", { style: { marginTop: "0.75rem" }, children: [_jsx("div", { children: "Tags" }), _jsx("div", { style: { display: "flex", gap: "0.5rem", flexWrap: "wrap" }, children: tags.map((tag) => {
+                }, children: [_jsxs("label", { children: [_jsx("div", { children: "R Multiple" }), _jsx("input", { className: "input", type: "number", value: state.rMultiple ?? "", onChange: (e) => setField("rMultiple", e.target.value === "" ? null : Number(e.target.value)) })] }), _jsxs("label", { style: { display: "flex", alignItems: "center", gap: "0.5rem" }, children: [_jsx("input", { type: "checkbox", checked: state.complied, onChange: (e) => setField("complied", e.target.checked) }), _jsx("span", { children: "Complied with rules" })] })] }), _jsxs("div", { style: { marginTop: "0.75rem" }, children: [_jsx("div", { children: "Tags" }), _jsx("div", { style: { display: "flex", gap: "0.5rem", flexWrap: "wrap" }, children: tags.map((tag) => {
                             const checked = state.tagIds.includes(tag.id);
                             return (_jsxs("label", { style: {
                                     padding: "0.35rem 0.65rem",
@@ -160,9 +178,36 @@ export default function RecordForm({ initial, tags, customFields, onSaved, onCan
                                 return (_jsxs("label", { children: [_jsx("div", { children: field.label }), _jsx("input", { className: "input", type: "datetime-local", value: current?.value ? toInputDateTime(current.value) : "", onChange: (e) => handleCustomValue(field, e.target.value) })] }, field.id));
                             }
                             return (_jsxs("label", { children: [_jsx("div", { children: field.label }), _jsx("input", { className: "input", value: current?.value ?? "", onChange: (e) => handleCustomValue(field, e.target.value) })] }, field.id));
-                        }) })] })), _jsxs("div", { style: { marginTop: "0.75rem" }, children: [_jsx("div", { children: "Notes" }), _jsx("textarea", { className: "textarea", rows: 3, value: state.notes, onChange: (e) => setField("notes", e.target.value) })] }), _jsxs("div", { style: { marginTop: "0.75rem", display: "flex", gap: "1rem", alignItems: "center" }, children: [_jsx("div", { children: _jsxs("label", { className: "btn secondary", style: { cursor: "pointer" }, children: [uploading ? "Uploading..." : "Upload Image", _jsx("input", { type: "file", accept: "image/png,image/jpeg,image/webp", style: { display: "none" }, onChange: (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file)
-                                            uploadFile(file);
-                                    } })] }) }), attachmentPreview && (_jsx("img", { src: attachmentPreview, alt: "attachment", style: { height: 80, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" } }))] }), _jsxs("div", { style: { marginTop: "1rem", display: "flex", gap: "0.5rem" }, children: [_jsx("button", { className: "btn", type: "submit", children: "Save" }), onCancel && (_jsx("button", { className: "btn secondary", type: "button", onClick: onCancel, children: "Cancel" }))] })] }));
+                        }) })] })), _jsxs("div", { style: { marginTop: "0.75rem" }, children: [_jsx("div", { children: "Notes" }), _jsx("textarea", { className: "textarea", rows: 3, value: state.notes, onChange: (e) => setField("notes", e.target.value), onPaste: handlePaste, onDragOver: (e) => {
+                            e.preventDefault();
+                            setDragging(true);
+                        }, onDragLeave: () => setDragging(false), onDrop: handleDrop, style: dragging ? { outline: "2px dashed rgba(124,58,237,0.5)" } : undefined })] }), _jsxs("div", { style: {
+                    marginTop: "0.75rem",
+                    display: "flex",
+                    gap: "1rem",
+                    alignItems: "center",
+                    flexWrap: "wrap"
+                }, children: [_jsxs("label", { className: clsx("btn", "secondary"), style: { cursor: "pointer" }, children: [uploading ? "Uploading..." : "Upload Image", _jsx("input", { type: "file", accept: "image/png,image/jpeg,image/webp", style: { display: "none" }, onChange: (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file)
+                                        uploadFile(file);
+                                } })] }), attachmentPreview && (_jsxs("div", { style: { position: "relative", display: "inline-block" }, children: [_jsx("img", { src: attachmentPreview, alt: "attachment", style: { height: 80, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" } }), _jsx("button", { type: "button", onClick: () => {
+                                    setAttachmentPreview(undefined);
+                                    setState((prev) => ({ ...prev, attachmentIds: [] }));
+                                }, style: {
+                                    position: "absolute",
+                                    top: -8,
+                                    right: -8,
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: "50%",
+                                    border: "none",
+                                    background: "rgba(239,68,68,0.9)",
+                                    color: "white",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    boxShadow: "0 6px 16px rgba(0,0,0,0.35)"
+                                }, "aria-label": "Remove attachment", children: "\u00D7" })] }))] }), _jsxs("div", { style: { marginTop: "1rem", display: "flex", gap: "0.5rem" }, children: [_jsx("button", { className: "btn", type: "submit", children: "Save" }), onCancel && (_jsx("button", { className: "btn secondary", type: "button", onClick: onCancel, children: "Cancel" }))] })] }));
 }

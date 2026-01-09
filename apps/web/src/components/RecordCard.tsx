@@ -1,5 +1,5 @@
 import { RecordWithRelations } from "@trading-logger/shared";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAttachmentUrl } from "../api/client";
 import { formatDateTime } from "../utils/format";
 
@@ -17,12 +17,17 @@ const resultLabels: Record<string, string> = {
 };
 
 export default function RecordCard({ record, onEdit, onDelete }: Props) {
-  const attachment = record.attachments?.[0];
-  const preview = attachment ? getAttachmentUrl(attachment.filePath) : null;
-  const pnlColor =
-    record.pnl > 0 ? "#10B981" : record.pnl < 0 ? "#EF4444" : "#E5ECFF";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
+  const attachments = useMemo(() => {
+    return [...(record.attachments ?? [])].sort((a, b) => {
+      if (a.createdAt && b.createdAt) return a.createdAt.localeCompare(b.createdAt);
+      if (a.id && b.id) return a.id - b.id;
+      return 0;
+    });
+  }, [record.attachments]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -62,9 +67,6 @@ export default function RecordCard({ record, onEdit, onDelete }: Props) {
           <div style={{ display: "flex", gap: "0.35rem", alignItems: "center", marginTop: "0.4rem", flexWrap: "wrap" }}>
             <span className="pill" style={{ background: "rgba(124, 58, 237, 0.15)", color: "#C4B5FD" }}>
               {resultLabels[record.result] ?? record.result}
-            </span>
-            <span className="pill" style={{ background: pnlColor + "20", color: pnlColor }}>
-              PNL {record.pnl}
             </span>
             {record.complied && (
               <span className="pill" style={{ background: "rgba(16, 185, 129, 0.15)", color: "#34D399" }}>
@@ -109,8 +111,7 @@ export default function RecordCard({ record, onEdit, onDelete }: Props) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.4rem" }}>
-        <Metric label="Risk" value={record.riskAmount} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.4rem" }}>
         <Metric label="R Multiple" value={record.rMultiple ?? "-"} />
       </div>
 
@@ -139,18 +140,88 @@ export default function RecordCard({ record, onEdit, onDelete }: Props) {
         </p>
       )}
 
-      {preview && (
-        <img
-          src={preview}
-          alt={`${record.symbol} attachment`}
+      {attachments.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          {attachments.map((att) => {
+            const src = getAttachmentUrl(att.filePath);
+            return (
+              <div key={att.id} style={{ position: "relative" }}>
+                <img
+                  src={src}
+                  alt="attachment"
+                  onClick={() => setLightboxSrc(src)}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    cursor: "zoom-in",
+                    background: "rgba(255,255,255,0.02)",
+                    objectFit: "contain"
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {lightboxSrc && (
+        <div
+          onClick={() => setLightboxSrc(null)}
           style={{
-            width: "100%",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.06)",
-            objectFit: "cover",
-            maxHeight: 240
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+            padding: "2rem"
           }}
-        />
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              maxWidth: "90vw",
+              maxHeight: "90vh"
+            }}
+          >
+            <img
+              src={lightboxSrc}
+              alt="attachment full"
+              style={{
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                borderRadius: 12,
+                objectFit: "contain",
+                boxShadow: "0 24px 60px rgba(0,0,0,0.45)"
+              }}
+            />
+            <button
+              onClick={() => setLightboxSrc(null)}
+              style={{
+                position: "absolute",
+                top: -12,
+                right: -12,
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                border: "none",
+                background: "rgba(0,0,0,0.75)",
+                color: "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+              aria-label="Close image"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

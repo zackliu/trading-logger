@@ -126,8 +126,6 @@ test("record fields persist with tags, custom field, and attachment", async (t) 
       symbol: "AAPL",
       accountType: "live",
       result: "breakeven",
-      pnl: 123.45,
-      riskAmount: 50,
       rMultiple: 2.5,
       complied: true,
       notes: "Filled via e2e test",
@@ -151,8 +149,6 @@ test("record fields persist with tags, custom field, and attachment", async (t) 
   assert.equal(fetched.symbol, "AAPL");
   assert.equal(fetched.accountType, "live");
   assert.equal(fetched.result, "breakeven");
-  assert.equal(fetched.pnl, 123.45);
-  assert.equal(fetched.riskAmount, 50);
   assert.equal(fetched.rMultiple, 2.5);
   assert.equal(fetched.complied, true);
   assert.equal(fetched.notes, "Filled via e2e test");

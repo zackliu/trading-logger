@@ -6,11 +6,17 @@ import {
 import { sqlite } from "../db/client.js";
 import { buildRecordWhereClause, normalizeFilters } from "./filters.js";
 
-function calcProfitFactor(sumWins: number, sumLosses: number) {
-  if (!sumWins || !sumLosses) return null;
-  const lossesAbs = Math.abs(sumLosses);
+const winCase = `CASE WHEN r.result = 'takeProfit' OR r.r_multiple > 0 THEN 1 ELSE 0 END`;
+const lossCase = `CASE WHEN r.result = 'stopLoss' OR r.r_multiple < 0 THEN 1 ELSE 0 END`;
+const breakevenCase = `CASE WHEN r.result = 'breakeven' OR r.r_multiple = 0 THEN 1 ELSE 0 END`;
+const winRCase = `CASE WHEN ${winCase} = 1 THEN r.r_multiple ELSE 0 END`;
+const lossRCase = `CASE WHEN ${lossCase} = 1 THEN r.r_multiple ELSE 0 END`;
+
+function calcProfitFactor(sumWinsR: number, sumLossR: number) {
+  if (!sumWinsR || !sumLossR) return null;
+  const lossesAbs = Math.abs(sumLossR);
   if (lossesAbs === 0) return null;
-  return sumWins / lossesAbs;
+  return sumWinsR / lossesAbs;
 }
 
 export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary {
@@ -20,17 +26,14 @@ export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary
     .prepare(
       `SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(CASE WHEN r.pnl > 0 THEN r.pnl END) as avgWin,
-        AVG(CASE WHEN r.pnl < 0 THEN r.pnl END) as avgLoss,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses,
-        AVG(r.pnl) as avgPnl,
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
         AVG(r.r_multiple) as avgR,
-        AVG(CASE WHEN r.pnl > 0 THEN r.r_multiple END) as avgWinR,
-        AVG(CASE WHEN r.pnl < 0 THEN r.r_multiple END) as avgLossR
+        AVG(CASE WHEN ${winCase} = 1 THEN r.r_multiple END) as avgWinR,
+        AVG(CASE WHEN ${lossCase} = 1 THEN r.r_multiple END) as avgLossR
       FROM records r
       WHERE ${where}`
     )
@@ -40,12 +43,14 @@ export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary
   const wins = row?.wins ?? 0;
   const losses = row?.losses ?? 0;
   const breakeven = row?.breakeven ?? 0;
-  const sumWins = row?.sumWins ?? 0;
-  const sumLosses = row?.sumLosses ?? 0;
+  const sumWinsR = row?.sumWinsR ?? 0;
+  const sumLossR = row?.sumLossR ?? 0;
 
   const winRate = totalTrades ? wins / totalTrades : 0;
   const payoffRatio =
-    row?.avgWin && row?.avgLoss ? row.avgWin / Math.abs(row.avgLoss) : null;
+    row?.avgWinR && row?.avgLossR ? row.avgWinR / Math.abs(row.avgLossR) : null;
+  const profitFactor = calcProfitFactor(sumWinsR, sumLossR);
+  const expectancy = row?.avgR ?? null;
 
   return {
     totalTrades,
@@ -53,10 +58,8 @@ export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary
     losses,
     breakeven,
     winRate,
-    avgWin: row?.avgWin ?? null,
-    avgLoss: row?.avgLoss ?? null,
-    profitFactor: calcProfitFactor(sumWins, sumLosses),
-    expectancy: row?.avgPnl ?? null,
+    profitFactor,
+    expectancy,
     avgR: row?.avgR ?? null,
     avgWinR: row?.avgWinR ?? null,
     avgLossR: row?.avgLossR ?? null,
@@ -81,12 +84,12 @@ export function groupByMetric(
         IFNULL(v.value_text, '') as key,
         IFNULL(v.value_text, '') as label,
         COUNT(*) as trades,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(r.pnl) as avgPnl,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
       FROM records r
       JOIN record_field_values v ON v.record_id = r.id AND v.field_id = ?
       WHERE ${where}
@@ -100,12 +103,12 @@ export function groupByMetric(
         t.id as key,
         t.name as label,
         COUNT(*) as trades,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(r.pnl) as avgPnl,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
       FROM records r
       JOIN record_tags rt ON rt.record_id = r.id
       JOIN tags t ON t.id = rt.tag_id
@@ -119,12 +122,12 @@ export function groupByMetric(
         r.symbol as key,
         r.symbol as label,
         COUNT(*) as trades,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(r.pnl) as avgPnl,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
       FROM records r
       WHERE ${where}
       GROUP BY r.symbol
@@ -136,12 +139,12 @@ export function groupByMetric(
         r.complied as key,
         CASE WHEN r.complied = 1 THEN 'Complied' ELSE 'Not complied' END as label,
         COUNT(*) as trades,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(r.pnl) as avgPnl,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
       FROM records r
       WHERE ${where}
       GROUP BY r.complied
@@ -153,12 +156,12 @@ export function groupByMetric(
         r.account_type as key,
         r.account_type as label,
         COUNT(*) as trades,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(r.pnl) as avgPnl,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
       FROM records r
       WHERE ${where}
       GROUP BY r.account_type
@@ -170,12 +173,12 @@ export function groupByMetric(
         r.result as key,
         r.result as label,
         COUNT(*) as trades,
-        SUM(CASE WHEN r.pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN r.pnl < 0 THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN r.pnl = 0 THEN 1 ELSE 0 END) as breakeven,
-        AVG(r.pnl) as avgPnl,
-        SUM(CASE WHEN r.pnl > 0 THEN r.pnl ELSE 0 END) as sumWins,
-        SUM(CASE WHEN r.pnl < 0 THEN r.pnl ELSE 0 END) as sumLosses
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
       FROM records r
       WHERE ${where}
       GROUP BY r.result
@@ -187,9 +190,9 @@ export function groupByMetric(
 
   const rows = sqlite.prepare(query).all(...extraParams, ...params) as any[];
   return rows.map((row) => {
-    const profitFactor = calcProfitFactor(row.sumWins ?? 0, row.sumLosses ?? 0);
     const winRate = row.trades ? (row.wins ?? 0) / row.trades : null;
-    const expectancy = row.avgPnl ?? null;
+    const profitFactor = calcProfitFactor(row.sumWinsR ?? 0, row.sumLossR ?? 0);
+    const expectancy = row.avgR ?? null;
     return {
       key: String(row.key),
       label: row.label ?? String(row.key),
@@ -198,7 +201,6 @@ export function groupByMetric(
       losses: row.losses ?? 0,
       breakeven: row.breakeven ?? 0,
       winRate,
-      avgPnl: row.avgPnl ?? null,
       profitFactor,
       expectancy
     };

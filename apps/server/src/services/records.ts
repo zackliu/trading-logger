@@ -17,8 +17,6 @@ type RecordRow = {
   symbol: string;
   account_type: string;
   result: string;
-  pnl: number;
-  risk_amount: number;
   r_multiple: number | null;
   complied: number;
   notes: string;
@@ -59,8 +57,6 @@ function mapRecords(rows: RecordRow[]): RecordWithRelations[] {
     symbol: row.symbol,
     accountType: row.account_type as any,
     result: row.result as any,
-    pnl: row.pnl,
-    riskAmount: row.risk_amount,
     rMultiple: row.r_multiple,
     complied: !!row.complied,
     notes: row.notes ?? "",
@@ -435,8 +431,8 @@ export function createRecord(input: RecordInput): RecordWithRelations {
         input.symbol,
         input.accountType,
         input.result,
-        input.pnl,
-        input.riskAmount,
+        0,
+        0,
         input.rMultiple ?? null,
         input.complied ? 1 : 0,
         input.notes ?? "",
@@ -474,8 +470,8 @@ export function updateRecord(id: number, input: RecordUpdate) {
         existing.symbol,
         existing.accountType,
         existing.result,
-        existing.pnl,
-        existing.riskAmount,
+        0,
+        0,
         existing.rMultiple ?? null,
         existing.complied ? 1 : 0,
         existing.notes ?? "",

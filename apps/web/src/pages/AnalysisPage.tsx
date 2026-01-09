@@ -220,10 +220,12 @@ export default function AnalysisPage() {
               label="Win Rate"
               value={`${(summaryQuery.data.winRate * 100).toFixed(1)}%`}
             />
-            <StatCard label="Expectancy" value={summaryQuery.data.expectancy ?? 0} />
             <StatCard label="Profit Factor" value={summaryQuery.data.profitFactor ?? 0} />
-            <StatCard label="Payoff Ratio" value={summaryQuery.data.payoffRatio ?? 0} />
-            <StatCard label="Avg R" value={summaryQuery.data.avgR ?? 0} />
+            <StatCard label="Expectancy (R)" value={summaryQuery.data.expectancy ?? null} />
+            <StatCard label="Avg R" value={summaryQuery.data.avgR ?? null} />
+            <StatCard label="Avg Win R" value={summaryQuery.data.avgWinR ?? null} />
+            <StatCard label="Avg Loss R" value={summaryQuery.data.avgLossR ?? null} />
+            <StatCard label="Payoff Ratio" value={summaryQuery.data.payoffRatio ?? null} />
           </>
         ) : (
           <div>Loading...</div>
@@ -288,9 +290,7 @@ export default function AnalysisPage() {
             <div key={r.id} style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "0.6rem" }}>
               <div style={{ fontWeight: 600 }}>{r.symbol}</div>
               <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>{formatDateTime(r.datetime)}</div>
-              <div style={{ color: r.pnl > 0 ? "#10B981" : r.pnl < 0 ? "#EF4444" : "#E5ECFF", fontWeight: 600 }}>
-                {r.pnl}
-              </div>
+              <div style={{ fontWeight: 600 }}>R: {r.rMultiple ?? "-"}</div>
               <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
                 {r.tags.map((t) => (
                   <span key={t.id} className="tag">
@@ -455,10 +455,15 @@ function FilterPanel({
 }
 
 function StatCard({ label, value }: { label: string; value: any }) {
+  const formatValue = (v: any) => {
+    if (v === null || v === undefined) return "-";
+    if (typeof v === "number" && Number.isFinite(v)) return v.toFixed(2);
+    return v;
+  };
   return (
     <div className="card">
       <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>{label}</div>
-      <div style={{ fontSize: "1.4rem", fontWeight: 700 }}>{value}</div>
+      <div style={{ fontSize: "1.4rem", fontWeight: 700 }}>{formatValue(value)}</div>
     </div>
   );
 }

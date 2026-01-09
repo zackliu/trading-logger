@@ -45,8 +45,6 @@ export default function RecordTable({
             <th>Symbol</th>
             <th>Account</th>
             <th>Result</th>
-            <th>PNL</th>
-            <th>Risk</th>
             <th>R</th>
             <th>Complied</th>
             <th>Tags</th>
@@ -77,10 +75,6 @@ export default function RecordTable({
               <td>{r.symbol}</td>
               <td>{r.accountType}</td>
               <td>{r.result}</td>
-              <td style={{ color: r.pnl > 0 ? "#10B981" : r.pnl < 0 ? "#EF4444" : "#E5ECFF" }}>
-                {r.pnl}
-              </td>
-              <td>{r.riskAmount}</td>
               <td>{r.rMultiple ?? "-"}</td>
               <td>{badge(r.complied ? "Yes" : "No", r.complied ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)")}</td>
               <td>

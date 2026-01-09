@@ -409,10 +409,12 @@ function AnalyticsPanel({
         <div className="analytics-grid">
           <Stat label="Trades" value={summary.totalTrades} />
           <Stat label="Win Rate" value={`${(summary.winRate * 100).toFixed(1)}%`} />
-          <Stat label="Expectancy" value={summary.expectancy ?? 0} />
-          <Stat label="Profit Factor" value={summary.profitFactor ?? 0} />
-          <Stat label="Avg R" value={summary.avgR ?? 0} />
-          <Stat label="Payoff Ratio" value={summary.payoffRatio ?? 0} />
+          <Stat label="Profit Factor" value={summary.profitFactor} />
+          <Stat label="Expectancy (R)" value={summary.expectancy} />
+          <Stat label="Avg R" value={summary.avgR} />
+          <Stat label="Avg Win R" value={summary.avgWinR} />
+          <Stat label="Avg Loss R" value={summary.avgLossR} />
+          <Stat label="Payoff Ratio" value={summary.payoffRatio} />
         </div>
       )}
 
@@ -423,6 +425,11 @@ function AnalyticsPanel({
 }
 
 function Stat({ label, value }: { label: string; value: any }) {
+  const formatValue = (v: any) => {
+    if (v === null || v === undefined) return "-";
+    if (typeof v === "number" && Number.isFinite(v)) return v.toFixed(2);
+    return v;
+  };
   return (
     <div
       style={{
@@ -433,7 +440,7 @@ function Stat({ label, value }: { label: string; value: any }) {
       }}
     >
       <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>{label}</div>
-      <div style={{ fontWeight: 700 }}>{value}</div>
+      <div style={{ fontWeight: 700 }}>{formatValue(value)}</div>
     </div>
   );
 }

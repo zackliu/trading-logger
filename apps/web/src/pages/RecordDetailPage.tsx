@@ -38,8 +38,6 @@ export default function RecordDetailPage() {
         <Detail label="Datetime" value={formatDateTime(data.datetime)} />
         <Detail label="Account" value={data.accountType} />
         <Detail label="Result" value={data.result} />
-        <Detail label="PNL" value={String(data.pnl)} />
-        <Detail label="Risk" value={String(data.riskAmount)} />
         <Detail label="R Multiple" value={data.rMultiple ?? "-"} />
         <Detail label="Complied" value={data.complied ? "Yes" : "No"} />
       </div>

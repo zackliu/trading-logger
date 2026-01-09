@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getAttachmentUrl } from "../api/client";
 import { formatDateTime } from "../utils/format";
 const resultLabels = {
@@ -9,11 +9,18 @@ const resultLabels = {
     manualExit: "Manual Exit"
 };
 export default function RecordCard({ record, onEdit, onDelete }) {
-    const attachment = record.attachments?.[0];
-    const preview = attachment ? getAttachmentUrl(attachment.filePath) : null;
-    const pnlColor = record.pnl > 0 ? "#10B981" : record.pnl < 0 ? "#EF4444" : "#E5ECFF";
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef(null);
+    const [lightboxSrc, setLightboxSrc] = useState(null);
+    const attachments = useMemo(() => {
+        return [...(record.attachments ?? [])].sort((a, b) => {
+            if (a.createdAt && b.createdAt)
+                return a.createdAt.localeCompare(b.createdAt);
+            if (a.id && b.id)
+                return a.id - b.id;
+            return 0;
+        });
+    }, [record.attachments]);
     useEffect(() => {
         const handler = (e) => {
             if (!menuRef.current)
@@ -36,7 +43,7 @@ export default function RecordCard({ record, onEdit, onDelete }) {
                     justifyContent: "space-between",
                     gap: "0.75rem",
                     alignItems: "flex-start"
-                }, children: [_jsxs("div", { style: { minWidth: 0 }, children: [_jsx("div", { style: { fontSize: "1.05rem", fontWeight: 700 }, children: record.symbol }), _jsxs("div", { style: { opacity: 0.75, fontSize: "0.9rem" }, children: [formatDateTime(record.datetime), " \u00B7 ", record.accountType] }), _jsxs("div", { style: { display: "flex", gap: "0.35rem", alignItems: "center", marginTop: "0.4rem", flexWrap: "wrap" }, children: [_jsx("span", { className: "pill", style: { background: "rgba(124, 58, 237, 0.15)", color: "#C4B5FD" }, children: resultLabels[record.result] ?? record.result }), _jsxs("span", { className: "pill", style: { background: pnlColor + "20", color: pnlColor }, children: ["PNL ", record.pnl] }), record.complied && (_jsx("span", { className: "pill", style: { background: "rgba(16, 185, 129, 0.15)", color: "#34D399" }, children: "Complied" }))] })] }), _jsxs("div", { style: { position: "relative" }, ref: menuRef, children: [_jsx("button", { className: "menu-button", onClick: (e) => {
+                }, children: [_jsxs("div", { style: { minWidth: 0 }, children: [_jsx("div", { style: { fontSize: "1.05rem", fontWeight: 700 }, children: record.symbol }), _jsxs("div", { style: { opacity: 0.75, fontSize: "0.9rem" }, children: [formatDateTime(record.datetime), " \u00B7 ", record.accountType] }), _jsxs("div", { style: { display: "flex", gap: "0.35rem", alignItems: "center", marginTop: "0.4rem", flexWrap: "wrap" }, children: [_jsx("span", { className: "pill", style: { background: "rgba(124, 58, 237, 0.15)", color: "#C4B5FD" }, children: resultLabels[record.result] ?? record.result }), record.complied && (_jsx("span", { className: "pill", style: { background: "rgba(16, 185, 129, 0.15)", color: "#34D399" }, children: "Complied" }))] })] }), _jsxs("div", { style: { position: "relative" }, ref: menuRef, children: [_jsx("button", { className: "menu-button", onClick: (e) => {
                                     e.stopPropagation();
                                     setMenuOpen((v) => !v);
                                 }, "aria-label": "Record actions", children: "\u22EF" }), menuOpen && (_jsxs("div", { className: "menu", children: [_jsx("button", { className: "menu-item", onClick: () => {
@@ -45,20 +52,58 @@ export default function RecordCard({ record, onEdit, onDelete }) {
                                         }, children: "Edit" }), _jsx("button", { className: "menu-item danger", onClick: () => {
                                             setMenuOpen(false);
                                             onDelete(record.id);
-                                        }, children: "Delete" })] }))] })] }), _jsxs("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.4rem" }, children: [_jsx(Metric, { label: "Risk", value: record.riskAmount }), _jsx(Metric, { label: "R Multiple", value: record.rMultiple ?? "-" })] }), record.tags?.length > 0 && (_jsx("div", { style: { display: "flex", gap: "0.35rem", flexWrap: "wrap" }, children: record.tags.map((tag) => (_jsx("span", { className: "tag", children: tag.name }, tag.id))) })), record.notes && (_jsx("p", { style: {
+                                        }, children: "Delete" })] }))] })] }), _jsx("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.4rem" }, children: _jsx(Metric, { label: "R Multiple", value: record.rMultiple ?? "-" }) }), record.tags?.length > 0 && (_jsx("div", { style: { display: "flex", gap: "0.35rem", flexWrap: "wrap" }, children: record.tags.map((tag) => (_jsx("span", { className: "tag", children: tag.name }, tag.id))) })), record.notes && (_jsx("p", { style: {
                     margin: 0,
                     opacity: 0.9,
                     lineHeight: 1.5,
                     whiteSpace: "pre-wrap",
                     maxHeight: 120,
                     overflow: "hidden"
-                }, children: record.notes })), preview && (_jsx("img", { src: preview, alt: `${record.symbol} attachment`, style: {
-                    width: "100%",
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    objectFit: "cover",
-                    maxHeight: 240
-                } }))] }));
+                }, children: record.notes })), attachments.length > 0 && (_jsx("div", { style: { display: "flex", flexDirection: "column", gap: "0.5rem" }, children: attachments.map((att) => {
+                    const src = getAttachmentUrl(att.filePath);
+                    return (_jsx("div", { style: { position: "relative" }, children: _jsx("img", { src: src, alt: "attachment", onClick: () => setLightboxSrc(src), style: {
+                                width: "100%",
+                                height: "auto",
+                                borderRadius: 12,
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                cursor: "zoom-in",
+                                background: "rgba(255,255,255,0.02)",
+                                objectFit: "contain"
+                            } }) }, att.id));
+                }) })), lightboxSrc && (_jsx("div", { onClick: () => setLightboxSrc(null), style: {
+                    position: "fixed",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.7)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 50,
+                    padding: "2rem"
+                }, children: _jsxs("div", { onClick: (e) => e.stopPropagation(), style: {
+                        position: "relative",
+                        maxWidth: "90vw",
+                        maxHeight: "90vh"
+                    }, children: [_jsx("img", { src: lightboxSrc, alt: "attachment full", style: {
+                                maxWidth: "90vw",
+                                maxHeight: "90vh",
+                                borderRadius: 12,
+                                objectFit: "contain",
+                                boxShadow: "0 24px 60px rgba(0,0,0,0.45)"
+                            } }), _jsx("button", { onClick: () => setLightboxSrc(null), style: {
+                                position: "absolute",
+                                top: -12,
+                                right: -12,
+                                width: 32,
+                                height: 32,
+                                borderRadius: "50%",
+                                border: "none",
+                                background: "rgba(0,0,0,0.75)",
+                                color: "white",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                            }, "aria-label": "Close image", children: "\u00D7" })] }) }))] }));
 }
 function Metric({ label, value }) {
     return (_jsxs("div", { style: {

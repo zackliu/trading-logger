@@ -15,8 +15,6 @@ export function normalizeFilters(filters: Partial<RecordFilters>): RecordFilters
       ? filters.accountTypes
       : undefined,
     results: filters.results?.length ? filters.results : undefined,
-    minPnl: filters.minPnl,
-    maxPnl: filters.maxPnl,
     customFieldFilters: filters.customFieldFilters?.filter(Boolean)
   };
 }
@@ -58,14 +56,6 @@ export function buildRecordWhereClause(filters: RecordFilters) {
   if (filters.results?.length) {
     clauses.push(`r.result IN (${placeholder(filters.results.length)})`);
     params.push(...filters.results);
-  }
-  if (filters.minPnl !== undefined) {
-    clauses.push("r.pnl >= ?");
-    params.push(filters.minPnl);
-  }
-  if (filters.maxPnl !== undefined) {
-    clauses.push("r.pnl <= ?");
-    params.push(filters.maxPnl);
   }
 
   for (const cf of filters.customFieldFilters ?? []) {

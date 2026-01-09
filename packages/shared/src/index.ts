@@ -110,8 +110,6 @@ export const RecordBaseSchema = z.object({
   symbol: z.string().min(1),
   accountType: AccountTypeEnum,
   result: ResultTypeEnum,
-  pnl: z.number(),
-  riskAmount: z.number(),
   rMultiple: z.number().nullable().optional(),
   complied: z.boolean(),
   notes: z.string().default(""),
@@ -123,8 +121,10 @@ export type RecordBase = z.infer<typeof RecordBaseSchema>;
 export const RecordInputSchema = RecordBaseSchema.omit({
   id: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
+  rMultiple: true
 }).extend({
+  rMultiple: z.number().nullable().default(null),
   tagIds: z.array(z.number().int()).default([]),
   customValues: z.array(CustomFieldValueSchema).default([]),
   attachmentIds: z.array(z.number().int()).default([])
@@ -199,8 +199,6 @@ export const RecordFilterSchema = DateRangeSchema.extend({
   complied: z.boolean().optional(),
   accountTypes: z.array(AccountTypeEnum).optional(),
   results: z.array(ResultTypeEnum).optional(),
-  minPnl: z.number().optional(),
-  maxPnl: z.number().optional(),
   customFieldFilters: z.array(CustomFieldFilterSchema).optional()
 }).merge(PaginationSchema.partial());
 export type RecordFilters = z.infer<typeof RecordFilterSchema>;
@@ -220,8 +218,6 @@ export const AnalyticsSummarySchema = z.object({
   losses: z.number(),
   breakeven: z.number(),
   winRate: z.number(),
-  avgWin: z.number().nullable(),
-  avgLoss: z.number().nullable(),
   profitFactor: z.number().nullable(),
   expectancy: z.number().nullable(),
   avgR: z.number().nullable(),
@@ -239,7 +235,6 @@ export const BreakdownRowSchema = z.object({
   losses: z.number(),
   breakeven: z.number(),
   winRate: z.number().nullable(),
-  avgPnl: z.number().nullable(),
   profitFactor: z.number().nullable(),
   expectancy: z.number().nullable()
 });

@@ -10,6 +10,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { api, getAttachmentUrl } from "../api/client";
 import { toInputDateTime, toIsoFromLocal } from "../utils/format";
+import clsx from "clsx";
 
 type Props = {
   initial?: RecordWithRelations | null;
@@ -26,8 +27,6 @@ const defaultState = (): RecordInput => ({
   symbol: "",
   accountType: "sim",
   result: "takeProfit",
-  pnl: 0,
-  riskAmount: 0,
   rMultiple: null,
   complied: false,
   notes: "",
@@ -50,8 +49,6 @@ export default function RecordForm({
           symbol: initial.symbol,
           accountType: initial.accountType,
           result: initial.result,
-          pnl: initial.pnl,
-          riskAmount: initial.riskAmount,
           rMultiple: initial.rMultiple ?? null,
           complied: initial.complied,
           notes: initial.notes ?? "",
@@ -74,6 +71,7 @@ export default function RecordForm({
       ? getAttachmentUrl(initial.attachments[0].filePath)
       : undefined
   );
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     if (initial) {
@@ -147,6 +145,29 @@ export default function RecordForm({
     }
   };
 
+  const tryHandleFile = (file?: File | null) => {
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return;
+    uploadFile(file);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const item = Array.from(e.clipboardData.items).find((i) =>
+      i.type.startsWith("image/")
+    );
+    if (item) {
+      const file = item.getAsFile();
+      tryHandleFile(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    tryHandleFile(file);
+  };
+
   return (
     <form className="card" onSubmit={onSubmit} style={{ marginBottom: "0.5rem" }}>
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -196,30 +217,12 @@ export default function RecordForm({
 
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "0.75rem",
-          marginTop: "0.75rem"
-        }}
-      >
-        <label>
-          <div>PNL</div>
-          <input
-            className="input"
-            type="number"
-            value={state.pnl}
-            onChange={(e) => setField("pnl", Number(e.target.value))}
-          />
-        </label>
-        <label>
-          <div>Risk Amount</div>
-          <input
-            className="input"
-            type="number"
-            value={state.riskAmount}
-            onChange={(e) => setField("riskAmount", Number(e.target.value))}
-          />
-        </label>
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+      gap: "0.75rem",
+      marginTop: "0.75rem"
+    }}
+  >
         <label>
           <div>R Multiple</div>
           <input
@@ -417,30 +420,73 @@ export default function RecordForm({
           rows={3}
           value={state.notes}
           onChange={(e) => setField("notes", e.target.value)}
+          onPaste={handlePaste}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          style={dragging ? { outline: "2px dashed rgba(124,58,237,0.5)" } : undefined}
         />
       </div>
 
-      <div style={{ marginTop: "0.75rem", display: "flex", gap: "1rem", alignItems: "center" }}>
-        <div>
-          <label className="btn secondary" style={{ cursor: "pointer" }}>
-            {uploading ? "Uploading..." : "Upload Image"}
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) uploadFile(file);
-              }}
-            />
-          </label>
-        </div>
-        {attachmentPreview && (
-          <img
-            src={attachmentPreview}
-            alt="attachment"
-            style={{ height: 80, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}
+      <div
+        style={{
+          marginTop: "0.75rem",
+          display: "flex",
+          gap: "1rem",
+          alignItems: "center",
+          flexWrap: "wrap"
+        }}
+      >
+        <label className={clsx("btn", "secondary")} style={{ cursor: "pointer" }}>
+          {uploading ? "Uploading..." : "Upload Image"}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) uploadFile(file);
+            }}
           />
+        </label>
+
+        {attachmentPreview && (
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <img
+              src={attachmentPreview}
+              alt="attachment"
+              style={{ height: 80, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setAttachmentPreview(undefined);
+                setState((prev) => ({ ...prev, attachmentIds: [] }));
+              }}
+              style={{
+                position: "absolute",
+                top: -8,
+                right: -8,
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                border: "none",
+                background: "rgba(239,68,68,0.9)",
+                color: "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 6px 16px rgba(0,0,0,0.35)"
+              }}
+              aria-label="Remove attachment"
+            >
+              ×
+            </button>
+          </div>
         )}
       </div>
 
