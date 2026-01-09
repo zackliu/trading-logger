@@ -1,0 +1,22 @@
+{
+  "name": "trading-logger",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "npm@10.4.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm --workspace packages/shared run dev\" \"npm --workspace apps/server run dev\" \"npm --workspace apps/web run dev\"",
+    "build": "npm --workspace packages/shared run build && npm --workspace apps/server run build && npm --workspace apps/web run build",
+    "lint": "npm --workspaces run lint",
+    "migrate": "npm --workspace apps/server run migrate",
+    "seed": "npm --workspace apps/server run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}

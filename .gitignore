@@ -1,0 +1,10 @@
+node_modules
+dist
+.turbo
+.idea
+.vscode
+pnpm-lock.yaml
+data/
+apps/server/dist/
+apps/web/node_modules/
+apps/web/dist/
