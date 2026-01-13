@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
 import { ComplianceCheck, Tag } from "@trading-logger/shared";
@@ -116,7 +116,7 @@ export default function SettingsTagsPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                borderTop: "1px solid rgba(255,255,255,0.08)",
+                borderTop: "1px solid #e6e9f0",
                 padding: "0.5rem 0"
               }}
             >
@@ -158,7 +158,7 @@ export default function SettingsTagsPage() {
                 </>
               ) : (
                 <>
-                  <span className="tag" style={{ background: tag.color ?? "rgba(255,255,255,0.08)" }}>
+                  <span className="tag" style={{ background: tag.color ?? "#eef2f8" }}>
                     {tag.name}
                   </span>
                   <button className="btn secondary" onClick={() => setEditing({ id: tag.id!, name: tag.name, color: tag.color })}>
@@ -221,7 +221,7 @@ export default function SettingsTagsPage() {
                 style={{
                   display: "grid",
                   gap: "0.5rem",
-                  borderTop: "1px solid rgba(255,255,255,0.08)",
+                  borderTop: "1px solid #e6e9f0",
                   padding: "0.5rem 0"
                 }}
               >
@@ -298,7 +298,7 @@ export default function SettingsTagsPage() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "0.5rem 0",
-                borderTop: "1px solid rgba(255,255,255,0.08)"
+                borderTop: "1px solid #e6e9f0"
               }}
             >
               <div>
@@ -306,7 +306,7 @@ export default function SettingsTagsPage() {
                 <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>
                   {c.type === "checkbox" ? "Checkbox" : "Setup"}{" "}
                   {c.type === "setup" && c.options?.length
-                    ? `• ${c.options.map((o) => o.label).join(", ")}`
+                    ? `â€¢ ${c.options.map((o) => o.label).join(", ")}`
                     : ""}
                 </div>
               </div>
@@ -343,3 +343,4 @@ export default function SettingsTagsPage() {
     </div>
   );
 }
+

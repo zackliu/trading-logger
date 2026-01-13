@@ -56,7 +56,7 @@ export default function RecordTable({
             <tr
               key={r.id}
               style={{
-                borderTop: "1px solid rgba(255,255,255,0.06)",
+                borderTop: "1px solid #e6e9f0",
                 cursor: "pointer"
               }}
               onClick={() => onOpen(r.id!)}

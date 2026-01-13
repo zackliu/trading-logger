@@ -70,14 +70,14 @@ export default function SettingsTagsPage() {
                             display: "flex",
                             alignItems: "center",
                             gap: "0.5rem",
-                            borderTop: "1px solid rgba(255,255,255,0.08)",
+                            borderTop: "1px solid #e6e9f0",
                             padding: "0.5rem 0"
                         }, children: isEditing ? (_jsxs(_Fragment, { children: [_jsx("input", { className: "input", value: editing?.name ?? "", onChange: (e) => setEditing((prev) => prev ? { ...prev, name: e.target.value } : prev) }), _jsx("input", { className: "input", type: "color", value: editing?.color ?? "#4F46E5", onChange: (e) => setEditing((prev) => prev ? { ...prev, color: e.target.value } : prev) }), _jsx("button", { className: "btn secondary", onClick: () => {
                                         if (editing) {
                                             updateMutation.mutate(editing);
                                             setEditing(null);
                                         }
-                                    }, children: "Save" }), _jsx("button", { className: "btn secondary", onClick: () => setEditing(null), children: "Cancel" })] })) : (_jsxs(_Fragment, { children: [_jsx("span", { className: "tag", style: { background: tag.color ?? "rgba(255,255,255,0.08)" }, children: tag.name }), _jsx("button", { className: "btn secondary", onClick: () => setEditing({ id: tag.id, name: tag.name, color: tag.color }), children: "Edit" }), _jsx("button", { className: "btn danger", onClick: () => deleteMutation.mutate(tag.id), children: "Delete" })] })) }, tag.id));
+                                    }, children: "Save" }), _jsx("button", { className: "btn secondary", onClick: () => setEditing(null), children: "Cancel" })] })) : (_jsxs(_Fragment, { children: [_jsx("span", { className: "tag", style: { background: tag.color ?? "#eef2f8" }, children: tag.name }), _jsx("button", { className: "btn secondary", onClick: () => setEditing({ id: tag.id, name: tag.name, color: tag.color }), children: "Edit" }), _jsx("button", { className: "btn danger", onClick: () => deleteMutation.mutate(tag.id), children: "Delete" })] })) }, tag.id));
                 }) }), _jsx("h2", { style: { marginTop: "2rem" }, children: "Compliance Checklist" }), _jsx("p", { style: { opacity: 0.75, marginTop: 0 }, children: "Define the checklist items used on the record form. All checkbox items must be checked and setup selections must not be \"None\" for a trade to be marked complied." }), _jsxs("div", { className: "card", style: { maxWidth: 520, marginBottom: "1rem", display: "grid", gap: "0.75rem" }, children: [_jsxs("div", { style: { display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0.5rem" }, children: [_jsxs("label", { children: [_jsx("div", { children: "Label" }), _jsx("input", { className: "input", value: checkLabel, onChange: (e) => setCheckLabel(e.target.value) })] }), _jsxs("label", { children: [_jsx("div", { children: "Type" }), _jsxs("select", { className: "select", value: checkType, onChange: (e) => setCheckType(e.target.value), children: [_jsx("option", { value: "checkbox", children: "Checkbox" }), _jsx("option", { value: "setup", children: "Setup (single select)" })] })] })] }), checkType === "setup" && (_jsxs("label", { children: [_jsx("div", { children: "Options (one per line)" }), _jsx("textarea", { className: "textarea", rows: 3, value: optionsText, onChange: (e) => setOptionsText(e.target.value) })] })), _jsx("button", { className: "btn", type: "button", onClick: addCheck, disabled: createCheckMutation.isPending, children: "Add checklist item" })] }), _jsxs("div", { className: "card", children: [checks.map((c) => {
                         const isEditing = editingCheck?.id === c.id;
                         if (isEditing) {
@@ -85,7 +85,7 @@ export default function SettingsTagsPage() {
                             return (_jsxs("div", { style: {
                                     display: "grid",
                                     gap: "0.5rem",
-                                    borderTop: "1px solid rgba(255,255,255,0.08)",
+                                    borderTop: "1px solid #e6e9f0",
                                     padding: "0.5rem 0"
                                 }, children: [_jsxs("div", { style: { display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0.5rem" }, children: [_jsx("input", { className: "input", value: ec.label, onChange: (e) => setEditingCheck((prev) => prev ? { ...prev, label: e.target.value } : prev) }), _jsxs("select", { className: "select", value: ec.type, onChange: (e) => setEditingCheck((prev) => prev ? { ...prev, type: e.target.value } : prev), children: [_jsx("option", { value: "checkbox", children: "Checkbox" }), _jsx("option", { value: "setup", children: "Setup (single select)" })] })] }), ec.type === "setup" && (_jsx("textarea", { className: "textarea", rows: 3, value: ec.optionsText, onChange: (e) => setEditingCheck((prev) => prev ? { ...prev, optionsText: e.target.value } : prev) })), _jsxs("div", { style: { display: "flex", gap: "0.5rem" }, children: [_jsx("button", { className: "btn secondary", onClick: () => {
                                                     if (!editingCheck)
@@ -110,9 +110,9 @@ export default function SettingsTagsPage() {
                                 justifyContent: "space-between",
                                 alignItems: "center",
                                 padding: "0.5rem 0",
-                                borderTop: "1px solid rgba(255,255,255,0.08)"
+                                borderTop: "1px solid #e6e9f0"
                             }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: c.label }), _jsxs("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: [c.type === "checkbox" ? "Checkbox" : "Setup", " ", c.type === "setup" && c.options?.length
-                                                    ? `• ${c.options.map((o) => o.label).join(", ")}`
+                                                    ? `â€¢ ${c.options.map((o) => o.label).join(", ")}`
                                                     : ""] })] }), _jsxs("div", { style: { display: "flex", gap: "0.4rem" }, children: [_jsx("button", { className: "btn secondary", onClick: () => setEditingCheck({
                                                 id: c.id,
                                                 label: c.label,

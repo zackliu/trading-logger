@@ -45,6 +45,16 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
         : undefined);
     const [dragging, setDragging] = useState(false);
     const [complianceSelections, setComplianceSelections] = useState(initial?.complianceSelections ?? []);
+    const [showRCalc, setShowRCalc] = useState(false);
+    const [calcStopSize, setCalcStopSize] = useState("");
+    const [calcPl, setCalcPl] = useState("");
+    const derivedRFromCalc = useMemo(() => {
+        const stop = Number(calcStopSize);
+        const pnl = Number(calcPl);
+        if (!Number.isFinite(stop) || !Number.isFinite(pnl) || stop === 0)
+            return null;
+        return Number((pnl / stop).toFixed(2));
+    }, [calcStopSize, calcPl]);
     const emotions = [
         {
             value: "fear",
@@ -152,6 +162,16 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
             complianceSelections
         };
     }, [state, customValueMap, complianceSelections]);
+    useEffect(() => {
+        const handler = (e) => {
+            const target = e.target;
+            if (!target.closest(".r-calc-popover") && !target.closest(".r-calc-trigger")) {
+                setShowRCalc(false);
+            }
+        };
+        document.addEventListener("click", handler);
+        return () => document.removeEventListener("click", handler);
+    }, []);
     const onSubmit = async (e) => {
         e.preventDefault();
         await onSaved({
@@ -205,7 +225,53 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
                     gap: "0.75rem",
                     marginTop: "0.75rem",
                     alignItems: "end"
-                }, children: [_jsxs("label", { children: [_jsx("div", { children: "Result" }), _jsxs("select", { className: "select", value: state.result, onChange: (e) => setField("result", e.target.value), children: [_jsx("option", { value: "takeProfit", children: "Take Profit" }), _jsx("option", { value: "stopLoss", children: "Stop Loss" }), _jsx("option", { value: "breakeven", children: "Breakeven" }), _jsx("option", { value: "manualExit", children: "Manual Exit" })] })] }), _jsxs("label", { children: [_jsx("div", { children: "R Multiple" }), _jsx("input", { className: "input", type: "number", value: state.rMultiple ?? "", onChange: (e) => setField("rMultiple", e.target.value === "" ? null : Number(e.target.value)) })] }), _jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.5rem" }, children: [_jsx("span", { style: { opacity: 0.7 }, children: "Complied" }), _jsx("span", { className: "pill", style: { background: derivedComplied ? "rgba(16,185,129,0.18)" : "rgba(239,68,68,0.18)", color: derivedComplied ? "#34D399" : "#F87171" }, children: derivedComplied ? "Yes" : "No" })] })] }), _jsxs("div", { style: {
+                }, children: [_jsxs("label", { children: [_jsx("div", { children: "Result" }), _jsxs("select", { className: "select", value: state.result, onChange: (e) => setField("result", e.target.value), children: [_jsx("option", { value: "takeProfit", children: "Take Profit" }), _jsx("option", { value: "stopLoss", children: "Stop Loss" }), _jsx("option", { value: "breakeven", children: "Breakeven" }), _jsx("option", { value: "manualExit", children: "Manual Exit" })] })] }), _jsxs("label", { children: [_jsxs("div", { style: {
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: "0.35rem"
+                                }, children: [_jsx("span", { children: "R Multiple" }), _jsx("button", { type: "button", onClick: () => setShowRCalc((v) => !v), className: "r-calc-trigger", style: {
+                                            width: 28,
+                                            height: 28,
+                                            borderRadius: 8,
+                                            border: "1px solid #d5dbe7",
+                                            background: "#f7f8fb",
+                                            cursor: "pointer",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: "0.9rem",
+                                            color: "#0b1d32"
+                                        }, "aria-label": "Open R calculator", children: "\uD83E\uDDEE" })] }), _jsx("input", { className: "input", type: "number", value: state.rMultiple ?? "", onChange: (e) => setField("rMultiple", e.target.value === "" ? null : Number(e.target.value)) })] }), showRCalc && (_jsx("div", { className: "r-calc-popover", onClick: (e) => e.stopPropagation(), style: {
+                            position: "fixed",
+                            inset: 0,
+                            background: "rgba(15,23,42,0.25)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 60,
+                            padding: "1rem"
+                        }, children: _jsxs("div", { style: {
+                                width: 320,
+                                background: "white",
+                                border: "1px solid #e6e9f0",
+                                borderRadius: 14,
+                                padding: "0.9rem",
+                                boxShadow: "0 22px 48px rgba(17,24,39,0.22)",
+                                display: "grid",
+                                gap: "0.6rem"
+                            }, children: [_jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [_jsx("div", { style: { fontWeight: 700 }, children: "R \u8BA1\u7B97\u5668" }), _jsx("button", { type: "button", className: "btn secondary", onClick: () => setShowRCalc(false), style: { padding: "0.3rem 0.6rem" }, children: "\u5173\u95ED" })] }), _jsxs("label", { style: { fontSize: "0.95rem", color: "#475569" }, children: [_jsx("div", { children: "\u6B62\u635F\u5927\u5C0F" }), _jsx("input", { className: "input", type: "number", value: calcStopSize, onChange: (e) => setCalcStopSize(e.target.value), placeholder: "\u4F8B\u5982 100" })] }), _jsxs("label", { style: { fontSize: "0.95rem", color: "#475569" }, children: [_jsx("div", { children: "\u5B9E\u9645\u76C8\u4E8F" }), _jsx("input", { className: "input", type: "number", value: calcPl, onChange: (e) => setCalcPl(e.target.value), placeholder: "\u53EF\u586B\u6B63\u8D1F\u6570" })] }), _jsxs("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between" }, children: [_jsxs("div", { style: { fontWeight: 800, fontSize: "1.1rem" }, children: ["R = ", derivedRFromCalc ?? "--"] }), _jsxs("div", { style: { display: "flex", gap: "0.4rem" }, children: [_jsx("button", { type: "button", className: "btn secondary", onClick: () => {
+                                                        setCalcStopSize("");
+                                                        setCalcPl("");
+                                                        setShowRCalc(false);
+                                                    }, children: "\u6E05\u7A7A" }), _jsx("button", { type: "button", className: "btn", disabled: derivedRFromCalc === null, onClick: () => {
+                                                        if (derivedRFromCalc !== null) {
+                                                            setField("rMultiple", derivedRFromCalc);
+                                                            setCalcStopSize("");
+                                                            setCalcPl("");
+                                                            setShowRCalc(false);
+                                                        }
+                                                    }, children: "\u5E94\u7528" })] })] })] }) })), _jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.5rem" }, children: [_jsx("span", { style: { opacity: 0.7 }, children: "Complied" }), _jsx("span", { className: "pill", style: { background: derivedComplied ? "rgba(16,185,129,0.18)" : "rgba(239,68,68,0.18)", color: derivedComplied ? "#34D399" : "#F87171" }, children: derivedComplied ? "Yes" : "No" })] })] }), _jsxs("div", { style: {
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
                     gap: "0.75rem",
@@ -215,9 +281,9 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
                             return (_jsxs("label", { style: {
                                     padding: "0.35rem 0.65rem",
                                     borderRadius: "999px",
-                                    border: `1px solid ${checked ? "rgba(79,70,229,0.6)" : "rgba(255,255,255,0.1)"}`,
+                                    border: `1px solid ${checked ? "rgba(0,113,227,0.55)" : "#d5dbe7"}`,
                                     cursor: "pointer",
-                                    background: checked ? "rgba(79,70,229,0.15)" : "transparent"
+                                    background: checked ? "rgba(0,113,227,0.1)" : "transparent"
                                 }, children: [_jsx("input", { type: "checkbox", style: { marginRight: "0.3rem" }, checked: checked, onChange: (e) => {
                                             const next = e.target.checked
                                                 ? [...state.tagIds, tag.id]
@@ -295,7 +361,7 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
                                     const file = e.target.files?.[0];
                                     if (file)
                                         uploadFile(file);
-                                } })] }), attachmentPreview && (_jsxs("div", { style: { position: "relative", display: "inline-block" }, children: [_jsx("img", { src: attachmentPreview, alt: "attachment", style: { height: 80, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" } }), _jsx("button", { type: "button", onClick: () => {
+                                } })] }), attachmentPreview && (_jsxs("div", { style: { position: "relative", display: "inline-block" }, children: [_jsx("img", { src: attachmentPreview, alt: "attachment", style: { height: 80, borderRadius: 12, border: "1px solid #e6e9f0" } }), _jsx("button", { type: "button", onClick: () => {
                                     setAttachmentPreview(undefined);
                                     setState((prev) => ({ ...prev, attachmentIds: [] }));
                                 }, style: {

@@ -491,8 +491,8 @@ function Stat({ label, value }: { label: string; value: any }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.05)",
+        background: "#f7f8fb",
+        border: "1px solid #e6e9f0",
         borderRadius: 12,
         padding: "0.7rem 0.8rem"
       }}
@@ -521,8 +521,8 @@ function Breakdown({ title, rows }: { title: string; rows: BreakdownRow[] }) {
                 alignItems: "center",
                 padding: "0.45rem 0.55rem",
                 borderRadius: 10,
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.05)"
+                background: "#f7f8fb",
+                border: "1px solid #e6e9f0"
               }}
             >
               <div style={{ display: "flex", gap: "0.45rem", alignItems: "center" }}>

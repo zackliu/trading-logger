@@ -1,10 +1,10 @@
 :root {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Inter", system-ui, sans-serif;
   line-height: 1.5;
   color-scheme: light;
-  background-color: #0b1221;
-  color: #e5ecff;
+  background-color: #f4f6fb;
+  color: #1a1c1f;
 }
 
 * {
@@ -14,9 +14,22 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15), transparent 25%),
-    radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.1), transparent 30%),
-    #0b1221;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at 18% 20%, rgba(0, 113, 227, 0.08), transparent 32%),
+    radial-gradient(circle at 75% 0%, rgba(52, 199, 89, 0.08), transparent 30%),
+    linear-gradient(180deg, #f9fbff 0%, #eef2f7 60%, #e9edf4 100%);
+}
+
+main.container {
+  height: calc(100vh - 88px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+main.container::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 a {
@@ -35,11 +48,12 @@ button {
 }
 
 .card {
-  background: rgba(15, 24, 41, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e6e9f0;
+  border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 32px rgba(17, 24, 39, 0.08);
+  backdrop-filter: blur(10px);
 }
 
 .input,
@@ -47,25 +61,26 @@ button {
 .textarea {
   width: 100%;
   padding: 0.55rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  color: #e5ecff;
+  background: #f7f8fb;
+  border: 1px solid #dce1eb;
+  border-radius: 12px;
+  color: #1a1c1f;
 }
 
 .input:focus,
 .select:focus,
 .textarea:focus {
-  outline: 2px solid rgba(79, 70, 229, 0.7);
+  outline: 2px solid rgba(0, 113, 227, 0.45);
+  box-shadow: 0 0 0 6px rgba(0, 113, 227, 0.08);
 }
 
 .select option {
-  color: #0b1221;
-  background: #f5f7ff;
+  color: #111827;
+  background: #f8fafc;
 }
 
 .select option:disabled {
-  color: rgba(11, 18, 33, 0.4);
+  color: rgba(17, 24, 39, 0.35);
 }
 
 .btn {
@@ -76,19 +91,23 @@ button {
   padding: 0.6rem 0.9rem;
   border-radius: 10px;
   border: 1px solid transparent;
-  background: linear-gradient(120deg, #4f46e5, #7c3aed);
-  color: white;
+  background: linear-gradient(135deg, #0a84ff, #0071e3);
+  color: #f8fbff;
   cursor: pointer;
   transition: transform 120ms ease, box-shadow 120ms ease;
+  box-shadow: 0 10px 24px rgba(0, 113, 227, 0.18);
 }
 
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: #eef2f8;
+  border-color: #d5dbe7;
+  color: #0b1d32;
+  box-shadow: none;
 }
 
 .btn.danger {
-  background: linear-gradient(120deg, #ef4444, #f97316);
+  background: linear-gradient(135deg, #ff3b30, #ff5f52);
+  box-shadow: 0 10px 24px rgba(255, 59, 48, 0.18);
 }
 
 .btn:active {
@@ -110,7 +129,7 @@ button {
   gap: 0.3rem;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #eef2f8;
   font-size: 0.85rem;
 }
 
@@ -149,7 +168,12 @@ button {
   gap: 0.75rem;
   height: calc(100vh - 120px);
   max-height: calc(100vh - 120px);
-  overflow: hidden;
+  overflow: auto;
+  scrollbar-width: none;
+}
+.records-page::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .records-main {
@@ -157,6 +181,7 @@ button {
   flex-direction: column;
   gap: 0.75rem;
   overflow-y: auto;
+  overflow-x: visible;
   padding-right: 4px;
   min-height: 0;
 }
@@ -178,9 +203,9 @@ button {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.06);
-  color: #e5ecff;
+  border: 1px solid #d5dbe7;
+  background: #f6f8fd;
+  color: #0b1d32;
   cursor: pointer;
   font-size: 1.2rem;
   display: inline-flex;
@@ -192,11 +217,11 @@ button {
   position: absolute;
   top: 42px;
   right: 0;
-  background: rgba(15, 24, 41, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e5e9f2;
   border-radius: 10px;
   min-width: 140px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 16px 38px rgba(17, 24, 39, 0.12);
   display: flex;
   flex-direction: column;
   padding: 0.35rem;
@@ -210,17 +235,17 @@ button {
   padding: 0.45rem 0.55rem;
   border-radius: 8px;
   border: none;
-  background: rgba(255, 255, 255, 0.04);
-  color: #e5ecff;
+  background: transparent;
+  color: #0b1d32;
   cursor: pointer;
 }
 
 .menu-item:hover {
-  background: rgba(79, 70, 229, 0.18);
+  background: rgba(0, 113, 227, 0.08);
 }
 
 .menu-item.danger:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(255, 59, 48, 0.12);
 }
 
 @media (max-width: 960px) {

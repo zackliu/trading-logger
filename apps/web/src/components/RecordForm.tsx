@@ -81,6 +81,15 @@ export default function RecordForm({
   const [complianceSelections, setComplianceSelections] = useState<ComplianceSelection[]>(
     initial?.complianceSelections ?? []
   );
+  const [showRCalc, setShowRCalc] = useState(false);
+  const [calcStopSize, setCalcStopSize] = useState<string>("");
+  const [calcPl, setCalcPl] = useState<string>("");
+  const derivedRFromCalc = useMemo(() => {
+    const stop = Number(calcStopSize);
+    const pnl = Number(calcPl);
+    if (!Number.isFinite(stop) || !Number.isFinite(pnl) || stop === 0) return null;
+    return Number((pnl / stop).toFixed(2));
+  }, [calcStopSize, calcPl]);
   const emotions = [
     {
       value: "fear",
@@ -203,6 +212,17 @@ export default function RecordForm({
     };
   }, [state, customValueMap, complianceSelections]);
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".r-calc-popover") && !target.closest(".r-calc-trigger")) {
+        setShowRCalc(false);
+      }
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSaved({
@@ -311,7 +331,37 @@ export default function RecordForm({
           </select>
         </label>
         <label>
-          <div>R Multiple</div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "0.35rem"
+            }}
+          >
+            <span>R Multiple</span>
+            <button
+              type="button"
+              onClick={() => setShowRCalc((v) => !v)}
+              className="r-calc-trigger"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                border: "1px solid #d5dbe7",
+                background: "#f7f8fb",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.9rem",
+                color: "#0b1d32"
+              }}
+              aria-label="Open R calculator"
+            >
+              🧮
+            </button>
+          </div>
           <input
             className="input"
             type="number"
@@ -324,6 +374,98 @@ export default function RecordForm({
             }
           />
         </label>
+        {showRCalc && (
+          <div
+            className="r-calc-popover"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(15,23,42,0.25)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 60,
+              padding: "1rem"
+            }}
+          >
+            <div
+              style={{
+                width: 320,
+                background: "white",
+                border: "1px solid #e6e9f0",
+                borderRadius: 14,
+                padding: "0.9rem",
+                boxShadow: "0 22px 48px rgba(17,24,39,0.22)",
+                display: "grid",
+                gap: "0.6rem"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontWeight: 700 }}>R 计算器</div>
+                <button
+                  type="button"
+                  className="btn secondary"
+                  onClick={() => setShowRCalc(false)}
+                  style={{ padding: "0.3rem 0.6rem" }}
+                >
+                  关闭
+                </button>
+              </div>
+              <label style={{ fontSize: "0.95rem", color: "#475569" }}>
+                <div>止损大小</div>
+                <input
+                  className="input"
+                  type="number"
+                  value={calcStopSize}
+                  onChange={(e) => setCalcStopSize(e.target.value)}
+                  placeholder="例如 100"
+                />
+              </label>
+              <label style={{ fontSize: "0.95rem", color: "#475569" }}>
+                <div>实际盈亏</div>
+                <input
+                  className="input"
+                  type="number"
+                  value={calcPl}
+                  onChange={(e) => setCalcPl(e.target.value)}
+                  placeholder="可填正负数"
+                />
+              </label>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontWeight: 800, fontSize: "1.1rem" }}>R = {derivedRFromCalc ?? "--"}</div>
+                <div style={{ display: "flex", gap: "0.4rem" }}>
+                  <button
+                    type="button"
+                    className="btn secondary"
+                    onClick={() => {
+                      setCalcStopSize("");
+                      setCalcPl("");
+                      setShowRCalc(false);
+                    }}
+                  >
+                    清空
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={derivedRFromCalc === null}
+                    onClick={() => {
+                      if (derivedRFromCalc !== null) {
+                        setField("rMultiple", derivedRFromCalc);
+                        setCalcStopSize("");
+                        setCalcPl("");
+                        setShowRCalc(false);
+                      }
+                    }}
+                  >
+                    应用
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ opacity: 0.7 }}>Complied</span>
           <span className="pill" style={{ background: derivedComplied ? "rgba(16,185,129,0.18)" : "rgba(239,68,68,0.18)", color: derivedComplied ? "#34D399" : "#F87171" }}>
@@ -400,10 +542,10 @@ export default function RecordForm({
                   padding: "0.35rem 0.65rem",
                   borderRadius: "999px",
                   border: `1px solid ${
-                    checked ? "rgba(79,70,229,0.6)" : "rgba(255,255,255,0.1)"
+                    checked ? "rgba(0,113,227,0.55)" : "#d5dbe7"
                   }`,
                   cursor: "pointer",
-                  background: checked ? "rgba(79,70,229,0.15)" : "transparent"
+                  background: checked ? "rgba(0,113,227,0.1)" : "transparent"
                 }}
               >
                 <input
@@ -663,11 +805,11 @@ export default function RecordForm({
 
         {attachmentPreview && (
           <div style={{ position: "relative", display: "inline-block" }}>
-            <img
-              src={attachmentPreview}
-              alt="attachment"
-              style={{ height: 80, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}
-            />
+                  <img
+                    src={attachmentPreview}
+                    alt="attachment"
+                    style={{ height: 80, borderRadius: 12, border: "1px solid #e6e9f0" }}
+                  />
             <button
               type="button"
               onClick={() => {

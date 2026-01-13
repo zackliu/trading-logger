@@ -1,5 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { getAttachmentUrl } from "../api/client";
 import { formatDateTime } from "../utils/format";
 const resultLabels = {
@@ -32,6 +33,43 @@ export default function RecordCard({ record, onEdit, onDelete }) {
         document.addEventListener("click", handler);
         return () => document.removeEventListener("click", handler);
     }, []);
+    const lightbox = lightboxSrc &&
+        createPortal(_jsx("div", { onClick: () => setLightboxSrc(null), style: {
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.8)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 4000,
+                padding: "2.5rem"
+            }, children: _jsxs("div", { onClick: (e) => e.stopPropagation(), style: {
+                    position: "relative",
+                    maxWidth: "min(1600px, 96vw)",
+                    maxHeight: "96vh"
+                }, children: [_jsx("img", { src: lightboxSrc, alt: "attachment full", style: {
+                            maxWidth: "min(1600px, 96vw)",
+                            maxHeight: "96vh",
+                            borderRadius: 14,
+                            objectFit: "contain",
+                            boxShadow: "0 36px 90px rgba(0,0,0,0.5)"
+                        } }), _jsx("button", { onClick: () => setLightboxSrc(null), style: {
+                            position: "absolute",
+                            top: -14,
+                            right: -14,
+                            width: 36,
+                            height: 36,
+                            borderRadius: "50%",
+                            border: "none",
+                            background: "rgba(0,0,0,0.82)",
+                            color: "white",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "1.2rem",
+                            boxShadow: "0 12px 34px rgba(0,0,0,0.35)"
+                        }, "aria-label": "Close image", children: "\u00D7" })] }) }), document.body);
     return (_jsxs("div", { className: "card", style: {
             padding: "0.95rem",
             display: "flex",
@@ -65,50 +103,17 @@ export default function RecordCard({ record, onEdit, onDelete }) {
                                 width: "100%",
                                 height: "auto",
                                 borderRadius: 12,
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                border: "1px solid #e6e9f0",
                                 cursor: "zoom-in",
-                                background: "rgba(255,255,255,0.02)",
+                                background: "#f7f8fb",
                                 objectFit: "contain"
                             } }) }, att.id));
-                }) })), lightboxSrc && (_jsx("div", { onClick: () => setLightboxSrc(null), style: {
-                    position: "fixed",
-                    inset: 0,
-                    background: "rgba(0,0,0,0.7)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 50,
-                    padding: "2rem"
-                }, children: _jsxs("div", { onClick: (e) => e.stopPropagation(), style: {
-                        position: "relative",
-                        maxWidth: "90vw",
-                        maxHeight: "90vh"
-                    }, children: [_jsx("img", { src: lightboxSrc, alt: "attachment full", style: {
-                                maxWidth: "90vw",
-                                maxHeight: "90vh",
-                                borderRadius: 12,
-                                objectFit: "contain",
-                                boxShadow: "0 24px 60px rgba(0,0,0,0.45)"
-                            } }), _jsx("button", { onClick: () => setLightboxSrc(null), style: {
-                                position: "absolute",
-                                top: -12,
-                                right: -12,
-                                width: 32,
-                                height: 32,
-                                borderRadius: "50%",
-                                border: "none",
-                                background: "rgba(0,0,0,0.75)",
-                                color: "white",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center"
-                            }, "aria-label": "Close image", children: "\u00D7" })] }) }))] }));
+                }) })), lightbox] }));
 }
 function Metric({ label, value }) {
     return (_jsxs("div", { style: {
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.05)",
+            background: "#f7f8fb",
+            border: "1px solid #e6e9f0",
             borderRadius: 10,
             padding: "0.55rem 0.65rem"
         }, children: [_jsx("div", { style: { opacity: 0.7, fontSize: "0.85rem" }, children: label }), _jsx("div", { style: { fontWeight: 700 }, children: value })] }));

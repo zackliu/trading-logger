@@ -8,7 +8,7 @@ const badge = (label, tone) => (_jsx("span", { style: {
     }, children: label }));
 export default function RecordTable({ records, selectedIds, onToggleSelect, onSelectAll, onOpen }) {
     return (_jsx("div", { className: "card", style: { overflowX: "auto" }, children: _jsxs("table", { style: { width: "100%", borderCollapse: "collapse" }, children: [_jsx("thead", { children: _jsxs("tr", { style: { textAlign: "left", fontSize: "0.9rem" }, children: [_jsx("th", { children: _jsx("input", { type: "checkbox", checked: selectedIds.length === records.length && records.length > 0, onChange: onSelectAll }) }), _jsx("th", { children: "Date" }), _jsx("th", { children: "Symbol" }), _jsx("th", { children: "Account" }), _jsx("th", { children: "Result" }), _jsx("th", { children: "R" }), _jsx("th", { children: "Complied" }), _jsx("th", { children: "Tags" }), _jsx("th", { children: "Notes" })] }) }), _jsx("tbody", { children: records.map((r) => (_jsxs("tr", { style: {
-                            borderTop: "1px solid rgba(255,255,255,0.06)",
+                            borderTop: "1px solid #e6e9f0",
                             cursor: "pointer"
                         }, onClick: () => onOpen(r.id), children: [_jsx("td", { children: _jsx("input", { type: "checkbox", checked: selectedIds.includes(r.id), onChange: (e) => {
                                         e.stopPropagation();

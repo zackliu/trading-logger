@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CustomField,
@@ -213,7 +213,7 @@ export default function SettingsFieldsPage() {
           <div
             key={field.id}
             style={{
-              borderTop: "1px solid rgba(255,255,255,0.08)",
+              borderTop: "1px solid #e6e9f0",
               padding: "0.5rem 0",
               display: "flex",
               justifyContent: "space-between",
@@ -223,7 +223,7 @@ export default function SettingsFieldsPage() {
             <div>
               <div style={{ fontWeight: 600 }}>{field.label}</div>
               <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>
-                {field.key} · {field.type} {field.isRequired ? "· required" : ""}
+                {field.key} Â· {field.type} {field.isRequired ? "Â· required" : ""}
               </div>
               {field.options && field.options.length > 0 && (
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
@@ -252,3 +252,4 @@ export default function SettingsFieldsPage() {
     </div>
   );
 }
+

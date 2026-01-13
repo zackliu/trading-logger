@@ -267,7 +267,7 @@ export default function AnalysisPage() {
               </thead>
               <tbody>
                 {customBreakdown.data.map((row) => (
-                  <tr key={row.key} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                  <tr key={row.key} style={{ borderTop: "1px solid #e6e9f0" }}>
                     <td>{row.label}</td>
                     <td>{row.trades}</td>
                     <td>{row.winRate ? (row.winRate * 100).toFixed(1) + "%" : "-"}</td>
@@ -287,7 +287,7 @@ export default function AnalysisPage() {
         <h3>Records Browser</h3>
         <div className="card" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "0.75rem" }}>
           {recordsQuery.data?.items.map((r) => (
-            <div key={r.id} style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "0.6rem" }}>
+            <div key={r.id} style={{ border: "1px solid #e6e9f0", borderRadius: 10, padding: "0.6rem", background: "#f7f8fb" }}>
               <div style={{ fontWeight: 600 }}>{r.symbol}</div>
               <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>{formatDateTime(r.datetime)}</div>
               <div style={{ fontWeight: 600 }}>R: {r.rMultiple ?? "-"}</div>
@@ -490,7 +490,7 @@ function BreakdownTable({
         </thead>
         <tbody>
           {data.map((row) => (
-            <tr key={row.key} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <tr key={row.key} style={{ borderTop: "1px solid #e6e9f0" }}>
               <td>{row.label}</td>
               <td>{row.trades}</td>
               <td>{row.winRate ? (row.winRate * 100).toFixed(1) + "%" : "-"}</td>

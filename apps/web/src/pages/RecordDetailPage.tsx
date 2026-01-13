@@ -79,7 +79,7 @@ export default function RecordDetailPage() {
               key={att.id}
               src={getAttachmentUrl(att.filePath)}
               alt="attachment"
-              style={{ width: 220, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{ width: 220, borderRadius: 12, border: "1px solid #e6e9f0" }}
             />
           ))}
         </div>
@@ -90,7 +90,7 @@ export default function RecordDetailPage() {
 
 function Detail({ label, value }: { label: string; value: any }) {
   return (
-    <div style={{ background: "rgba(255,255,255,0.04)", padding: "0.55rem 0.7rem", borderRadius: 10 }}>
+    <div style={{ background: "#f7f8fb", padding: "0.55rem 0.7rem", borderRadius: 10, border: "1px solid #e6e9f0" }}>
       <div style={{ opacity: 0.7, fontSize: "0.85rem" }}>{label}</div>
       <div style={{ fontWeight: 600 }}>{value}</div>
     </div>

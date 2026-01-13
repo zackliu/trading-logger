@@ -86,10 +86,10 @@ export default function SettingsFieldsPage() {
                                     setEditingId(null);
                                     setForm(emptyForm());
                                 }, children: "Cancel" }))] })] }), _jsx("div", { className: "card", children: fields?.map((field) => (_jsxs("div", { style: {
-                        borderTop: "1px solid rgba(255,255,255,0.08)",
+                        borderTop: "1px solid #e6e9f0",
                         padding: "0.5rem 0",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center"
-                    }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 600 }, children: field.label }), _jsxs("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: [field.key, " \u00B7 ", field.type, " ", field.isRequired ? "· required" : ""] }), field.options && field.options.length > 0 && (_jsx("div", { style: { display: "flex", gap: "0.35rem", flexWrap: "wrap" }, children: field.options.map((opt) => (_jsxs("span", { className: "tag", children: [opt.label, " (", opt.value, ")"] }, opt.value))) }))] }), _jsxs("div", { style: { display: "flex", gap: "0.35rem" }, children: [_jsx("button", { className: "btn secondary", onClick: () => setEditingId(field.id), children: "Edit" }), _jsx("button", { className: "btn danger", onClick: () => deleteMutation.mutate(field.id), children: "Delete" })] })] }, field.id))) })] }));
+                    }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 600 }, children: field.label }), _jsxs("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: [field.key, " \u00C2\u00B7 ", field.type, " ", field.isRequired ? "Â· required" : ""] }), field.options && field.options.length > 0 && (_jsx("div", { style: { display: "flex", gap: "0.35rem", flexWrap: "wrap" }, children: field.options.map((opt) => (_jsxs("span", { className: "tag", children: [opt.label, " (", opt.value, ")"] }, opt.value))) }))] }), _jsxs("div", { style: { display: "flex", gap: "0.35rem" }, children: [_jsx("button", { className: "btn secondary", onClick: () => setEditingId(field.id), children: "Edit" }), _jsx("button", { className: "btn danger", onClick: () => deleteMutation.mutate(field.id), children: "Delete" })] })] }, field.id))) })] }));
 }

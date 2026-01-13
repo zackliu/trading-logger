@@ -179,8 +179,8 @@ function Stat({ label, value }) {
         return v;
     };
     return (_jsxs("div", { style: {
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.05)",
+            background: "#f7f8fb",
+            border: "1px solid #e6e9f0",
             borderRadius: 12,
             padding: "0.7rem 0.8rem"
         }, children: [_jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: label }), _jsx("div", { style: { fontWeight: 700 }, children: formatValue(value) })] }));
@@ -193,7 +193,7 @@ function Breakdown({ title, rows }) {
                         alignItems: "center",
                         padding: "0.45rem 0.55rem",
                         borderRadius: 10,
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.05)"
+                        background: "#f7f8fb",
+                        border: "1px solid #e6e9f0"
                     }, children: [_jsxs("div", { style: { display: "flex", gap: "0.45rem", alignItems: "center" }, children: [_jsx("span", { className: "pill", children: row.label }), _jsxs("span", { style: { opacity: 0.75 }, children: [row.trades, " trades"] })] }), _jsx("div", { style: { fontWeight: 700 }, children: row.winRate ? `${(row.winRate * 100).toFixed(0)}%` : "-" })] }, row.key))) }))] }));
 }
