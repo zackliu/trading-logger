@@ -1,6 +1,7 @@
 import {
   ComplianceSelection,
   CustomFieldValue,
+  Emotion,
   RecordFilters,
   RecordInput,
   RecordUpdate,
@@ -12,11 +13,13 @@ import { buildRecordWhereClause, normalizeFilters } from "./filters.js";
 import fs from "fs";
 import path from "path";
 import { listComplianceChecks } from "./compliance.js";
+import { ensureUnknownSetup, normalizeSetupId } from "./setups.js";
 
 type RecordRow = {
   id: number;
   datetime: string;
   symbol: string;
+  setup_id: number;
   account_type: string;
   result: string;
   r_multiple: number | null;
@@ -29,6 +32,7 @@ type RecordRow = {
 };
 
 type TagRow = { id: number; name: string; color: string | null; created_at: string };
+type SetupRow = { id: number; name: string; sort_order: number | null; created_at: string };
 type AttachmentRow = {
   id: number;
   record_id: number | null;
@@ -54,16 +58,41 @@ type CustomValueRow = {
 
 const placeholders = (count: number) => new Array(count).fill("?").join(", ");
 
-function mapRecords(rows: RecordRow[]): RecordWithRelations[] {
+function mapSetup(setupId: number, setupMap: Map<number, SetupRow>) {
+  const setup = setupMap.get(setupId);
+  const source =
+    setup ??
+    ({
+      id: setupId,
+      name: "Unknown",
+      sort_order: 0,
+      created_at: dayjs().toISOString()
+    } as SetupRow);
+  return {
+    id: source.id,
+    name: source.name,
+    sortOrder: source.sort_order ?? 0,
+    createdAt: source.created_at
+      ? dayjs(source.created_at).toISOString()
+      : undefined
+  };
+}
+
+function mapRecords(
+  rows: RecordRow[],
+  setupMap: Map<number, SetupRow>
+): RecordWithRelations[] {
   return rows.map((row) => ({
     id: row.id,
     datetime: row.datetime,
     symbol: row.symbol,
+    setupId: row.setup_id,
+    setup: mapSetup(row.setup_id, setupMap),
     accountType: row.account_type as any,
     result: row.result as any,
     rMultiple: row.r_multiple,
-    entryEmotion: row.entry_emotion ?? undefined,
-    exitEmotion: row.exit_emotion ?? undefined,
+    entryEmotion: (row.entry_emotion ?? undefined) as Emotion | undefined,
+    exitEmotion: (row.exit_emotion ?? undefined) as Emotion | undefined,
     complied: !!row.complied,
     notes: row.notes ?? "",
     createdAt: row.created_at,
@@ -406,6 +435,7 @@ function setRecordCustomValues(recordId: number, values: CustomFieldValue[]) {
 export function listRecords(
   rawFilters: Partial<RecordFilters>
 ): { items: RecordWithRelations[]; total: number } {
+  ensureUnknownSetup();
   const filters = normalizeFilters(rawFilters);
   const { where, params } = buildRecordWhereClause(filters);
   const limit = filters.pageSize ?? 20;
@@ -424,6 +454,16 @@ export function listRecords(
 
   if (!rows.length) {
     return { items: [], total };
+  }
+  const setupIds = Array.from(new Set(rows.map((r) => r.setup_id)));
+  const setupMap = new Map<number, SetupRow>();
+  if (setupIds.length) {
+    const setupRows = sqlite
+      .prepare(
+        `SELECT * FROM setups WHERE id IN (${placeholders(setupIds.length)})`
+      )
+      .all(...setupIds) as SetupRow[];
+    setupRows.forEach((s) => setupMap.set(s.id, s));
   }
   const recordIds = rows.map((r) => r.id);
   const tagRows = sqlite
@@ -448,12 +488,16 @@ export function listRecords(
     )
     .all(...recordIds) as CustomValueRow[];
 
-  const mapped = mapRecords(rows);
+  const mapped = mapRecords(rows, setupMap);
   const withRelations = attachRelations(mapped, tagRows, attachmentRows, customValueRows);
   withRelations.forEach((rec) => {
     rec.complianceSelections = mapComplianceSelections(rec.id!);
-    rec.entryEmotion = (rows.find((r) => r.id === rec.id)?.entry_emotion) ?? undefined;
-    rec.exitEmotion = (rows.find((r) => r.id === rec.id)?.exit_emotion) ?? undefined;
+    rec.entryEmotion = (
+      rows.find((r) => r.id === rec.id)?.entry_emotion ?? undefined
+    ) as Emotion | undefined;
+    rec.exitEmotion = (
+      rows.find((r) => r.id === rec.id)?.exit_emotion ?? undefined
+    ) as Emotion | undefined;
   });
   return {
     items: withRelations,
@@ -462,10 +506,19 @@ export function listRecords(
 }
 
 export function getRecordById(id: number): RecordWithRelations | null {
+  ensureUnknownSetup();
   const row = sqlite
     .prepare(`SELECT * FROM records WHERE id = ? LIMIT 1`)
     .get(id) as RecordRow | undefined;
   if (!row) return null;
+
+  const setupMap = new Map<number, SetupRow>();
+  const setupRow = sqlite
+    .prepare(`SELECT * FROM setups WHERE id = ? LIMIT 1`)
+    .get(row.setup_id) as SetupRow | undefined;
+  if (setupRow) {
+    setupMap.set(setupRow.id, setupRow);
+  }
 
   const tags = sqlite
     .prepare(
@@ -481,23 +534,26 @@ export function getRecordById(id: number): RecordWithRelations | null {
     )
     .all(id) as CustomValueRow[];
 
-  const mapped = mapRecords([row])[0];
+  const mapped = mapRecords([row], setupMap)[0];
   const withRelations = attachRelations([mapped], tags, attachments, customValues)[0];
   withRelations.complianceSelections = mapComplianceSelections(id);
   return withRelations;
 }
 
 export function createRecord(input: RecordInput): RecordWithRelations {
+  ensureUnknownSetup();
+  const setupId = normalizeSetupId(input.setupId);
   const now = dayjs().toISOString();
   const trx = sqlite.transaction(() => {
     const info = sqlite
       .prepare(
-        `INSERT INTO records (datetime, symbol, account_type, result, r_multiple, entry_emotion, exit_emotion, complied, notes, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO records (datetime, symbol, setup_id, account_type, result, r_multiple, entry_emotion, exit_emotion, complied, notes, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         input.datetime,
         input.symbol,
+        setupId,
         input.accountType,
         input.result,
         input.rMultiple ?? null,
@@ -541,16 +597,18 @@ export function updateRecord(id: number, input: RecordUpdate) {
   if (!current) {
     throw new Error("Record not found");
   }
+  const setupId = normalizeSetupId(input.setupId ?? current.setupId);
   const now = dayjs().toISOString();
   const trx = sqlite.transaction(() => {
-    const existing = { ...current, ...input };
+    const existing = { ...current, ...input, setupId };
     sqlite
       .prepare(
-        `UPDATE records SET datetime = ?, symbol = ?, account_type = ?, result = ?, r_multiple = ?, complied = ?, notes = ?, updated_at = ?, entry_emotion = ?, exit_emotion = ? WHERE id = ?`
+        `UPDATE records SET datetime = ?, symbol = ?, setup_id = ?, account_type = ?, result = ?, r_multiple = ?, complied = ?, notes = ?, updated_at = ?, entry_emotion = ?, exit_emotion = ? WHERE id = ?`
       )
       .run(
         existing.datetime,
         existing.symbol,
+        setupId,
         existing.accountType,
         existing.result,
         existing.rMultiple ?? null,

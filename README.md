@@ -29,6 +29,14 @@ http://localhost:5173/
 
 Frontend uses `VITE_API_BASE` (defaults to `http://localhost:4000/api`).
 
+## Analytics calculations
+- Total/Wins/Losses/Breakeven: counts of trades where `result` is takeProfit/stopLoss/breakeven, or `r_multiple` > 0 / < 0 / = 0.
+- Win Rate: `wins / total`.
+- Profit Factor: `sum(positive r_multiple) / |sum(negative r_multiple)|` (shown as `-` if either side is missing/zero).
+- Expectancy (Avg R): average of `r_multiple` across all trades.
+- Avg Win R / Avg Loss R: average `r_multiple` for winning and losing trades respectively.
+- Payoff Ratio: `Avg Win R / |Avg Loss R|` (shown as `-` if either side is missing/zero).
+
 ## Database & migrations
 - SQLite database lives at `data/app.db` (created on first run).
 - Migrations are SQL files in `apps/server/drizzle/migrations`.

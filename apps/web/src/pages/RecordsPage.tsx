@@ -10,7 +10,8 @@ import {
   RecordUpdate,
   RecordWithRelations,
   Tag,
-  ComplianceCheck
+  ComplianceCheck,
+  Setup
 } from "@trading-logger/shared";
 import { api } from "../api/client";
 import RecordForm from "../components/RecordForm";
@@ -28,6 +29,10 @@ export default function RecordsPage() {
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ["tags"],
     queryFn: api.listTags
+  });
+  const { data: setups = [] } = useQuery<Setup[]>({
+    queryKey: ["setups"],
+    queryFn: api.listSetups
   });
   const { data: customFields = [] } = useQuery<CustomField[]>({
     queryKey: ["customFields"],
@@ -50,6 +55,10 @@ export default function RecordsPage() {
   const tagBreakdown = useQuery<BreakdownRow[]>({
     queryKey: ["analytics", "tag", filters],
     queryFn: () => api.analyticsGroupBy(filters, "tag")
+  });
+  const setupBreakdown = useQuery<BreakdownRow[]>({
+    queryKey: ["analytics", "setup", filters],
+    queryFn: () => api.analyticsGroupBy(filters, "setup")
   });
   const resultBreakdown = useQuery<BreakdownRow[]>({
     queryKey: ["analytics", "result", filters],
@@ -150,6 +159,7 @@ export default function RecordsPage() {
           <FilterPanel
             filters={filters}
             tags={tags}
+            setups={setups}
             onChange={updateFilters}
             onReset={() => setFilters({ page: 1, pageSize: 12 })}
           />
@@ -158,6 +168,7 @@ export default function RecordsPage() {
             summary={summaryQuery.data}
             loading={summaryQuery.isLoading}
             tagRows={tagBreakdown.data ?? []}
+            setupRows={setupBreakdown.data ?? []}
             resultRows={resultBreakdown.data ?? []}
           />
         </aside>
@@ -168,6 +179,7 @@ export default function RecordsPage() {
               key={formMode === "edit" ? editing?.id ?? "edit" : "create"}
               initial={formMode === "edit" ? editing : null}
               tags={tags}
+              setups={setups}
               customFields={customFields}
               complianceChecks={complianceChecks}
               onSaved={handleSave}
@@ -240,11 +252,13 @@ export default function RecordsPage() {
 function FilterPanel({
   filters,
   tags,
+  setups,
   onChange,
   onReset
 }: {
   filters: Partial<RecordFilters>;
   tags: Tag[];
+  setups: Setup[];
   onChange: (f: Partial<RecordFilters>) => void;
   onReset: () => void;
 }) {
@@ -378,6 +392,26 @@ function FilterPanel({
           </select>
         </label>
         <label>
+          <div>Setup</div>
+          <select
+            className="select"
+            value={filters.setupIds?.[0] ?? ""}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                setupIds: e.target.value ? [Number(e.target.value)] : undefined
+              })
+            }
+          >
+            <option value="">All</option>
+            {setups?.map((setup) => (
+              <option key={setup.id} value={setup.id}>
+                {setup.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           <div>Tags</div>
           <select
             className="select"
@@ -446,11 +480,13 @@ function AnalyticsPanel({
   summary,
   loading,
   tagRows,
+  setupRows,
   resultRows
 }: {
   summary?: AnalyticsSummary;
   loading: boolean;
   tagRows: BreakdownRow[];
+  setupRows: BreakdownRow[];
   resultRows: BreakdownRow[];
 }) {
   return (
@@ -477,6 +513,7 @@ function AnalyticsPanel({
       )}
 
       <Breakdown title="By Result" rows={resultRows} />
+      <Breakdown title="Top Setups" rows={setupRows} />
       <Breakdown title="Top Tags" rows={tagRows} />
     </div>
   );
@@ -505,6 +542,8 @@ function Stat({ label, value }: { label: string; value: any }) {
 
 function Breakdown({ title, rows }: { title: string; rows: BreakdownRow[] }) {
   const top = rows.slice(0, 4);
+  const formatWinRate = (v: number | null | undefined) =>
+    v === null || v === undefined ? "-" : `${(v * 100).toFixed(0)}%`;
   return (
     <div>
       <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>{title}</div>
@@ -529,9 +568,7 @@ function Breakdown({ title, rows }: { title: string; rows: BreakdownRow[] }) {
                 <span className="pill">{row.label}</span>
                 <span style={{ opacity: 0.75 }}>{row.trades} trades</span>
               </div>
-              <div style={{ fontWeight: 700 }}>
-                {row.winRate ? `${(row.winRate * 100).toFixed(0)}%` : "-"}
-              </div>
+              <div style={{ fontWeight: 700 }}>{formatWinRate(row.winRate)}</div>
             </div>
           ))}
         </div>

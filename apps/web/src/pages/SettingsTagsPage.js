@@ -8,12 +8,19 @@ export default function SettingsTagsPage() {
         queryKey: ["tags"],
         queryFn: api.listTags
     });
+    const { data: setups = [] } = useQuery({
+        queryKey: ["setups"],
+        queryFn: api.listSetups
+    });
     const { data: checks = [] } = useQuery({
         queryKey: ["complianceChecks"],
         queryFn: api.listComplianceChecks
     });
     const [form, setForm] = useState({ name: "", color: "#4F46E5" });
     const [editing, setEditing] = useState(null);
+    const [setupName, setSetupName] = useState("");
+    const [setupSortOrder, setSetupSortOrder] = useState("");
+    const [editingSetup, setEditingSetup] = useState(null);
     const [checkLabel, setCheckLabel] = useState("");
     const [checkType, setCheckType] = useState("checkbox");
     const [optionsText, setOptionsText] = useState("");
@@ -32,6 +39,28 @@ export default function SettingsTagsPage() {
     const deleteMutation = useMutation({
         mutationFn: (id) => api.deleteTag(id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tags"] })
+    });
+    const createSetupMutation = useMutation({
+        mutationFn: (payload) => api.createSetup(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["setups"] });
+            setSetupName("");
+            setSetupSortOrder("");
+        }
+    });
+    const updateSetupMutation = useMutation({
+        mutationFn: (input) => api.updateSetup(input.id, {
+            name: input.name,
+            sortOrder: input.sortOrder
+        }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["setups"] });
+            setEditingSetup(null);
+        }
+    });
+    const deleteSetupMutation = useMutation({
+        mutationFn: (id) => api.deleteSetup(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setups"] })
     });
     const createCheckMutation = useMutation({
         mutationFn: api.createComplianceCheck,
@@ -64,7 +93,46 @@ export default function SettingsTagsPage() {
             : undefined;
         createCheckMutation.mutate({ label: checkLabel, type: checkType, options });
     };
-    return (_jsxs("div", { children: [_jsx("h2", { children: "Tags" }), _jsx("div", { className: "card", style: { maxWidth: 420, marginBottom: "1rem" }, children: _jsxs("div", { style: { display: "flex", gap: "0.5rem", flexWrap: "wrap" }, children: [_jsx("input", { className: "input", placeholder: "Name", value: form.name, onChange: (e) => setForm((f) => ({ ...f, name: e.target.value })) }), _jsx("input", { className: "input", type: "color", value: form.color, onChange: (e) => setForm((f) => ({ ...f, color: e.target.value })) }), _jsx("button", { className: "btn", onClick: () => createMutation.mutate({ name: form.name, color: form.color }), children: "Add tag" })] }) }), _jsx("div", { className: "card", children: tags?.map((tag) => {
+    return (_jsxs("div", { children: [_jsx("h2", { children: "Setups" }), _jsx("p", { style: { opacity: 0.75, marginTop: 0 }, children: "Manage the single-select setups used on records and filters. \"Unknown\" is always kept." }), _jsx("div", { className: "card", style: { maxWidth: 460, marginBottom: "1rem" }, children: _jsxs("div", { style: { display: "flex", gap: "0.5rem", flexWrap: "wrap" }, children: [_jsx("input", { className: "input", placeholder: "Name", value: setupName, onChange: (e) => setSetupName(e.target.value) }), _jsx("input", { className: "input", type: "number", placeholder: "Order", value: setupSortOrder, onChange: (e) => setSetupSortOrder(e.target.value), style: { width: 120 } }), _jsx("button", { className: "btn", onClick: () => createSetupMutation.mutate({
+                                name: setupName,
+                                sortOrder: setupSortOrder ? Number(setupSortOrder) : undefined
+                            }), disabled: !setupName.trim(), children: "Add setup" })] }) }), _jsxs("div", { className: "card", children: [setups.map((setup) => {
+                        const isEditing = editingSetup?.id === setup.id;
+                        const isDefault = setup.name.toLowerCase() === "unknown";
+                        if (isEditing) {
+                            return (_jsxs("div", { style: {
+                                    display: "grid",
+                                    gap: "0.5rem",
+                                    borderTop: "1px solid #e6e9f0",
+                                    padding: "0.5rem 0"
+                                }, children: [_jsxs("div", { style: { display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0.5rem" }, children: [_jsx("input", { className: "input", value: editingSetup?.name ?? "", onChange: (e) => setEditingSetup((prev) => prev ? { ...prev, name: e.target.value } : prev) }), _jsx("input", { className: "input", type: "number", value: editingSetup?.sortOrder ?? "", onChange: (e) => setEditingSetup((prev) => prev
+                                                    ? {
+                                                        ...prev,
+                                                        sortOrder: e.target.value === "" ? undefined : Number(e.target.value)
+                                                    }
+                                                    : prev) })] }), _jsxs("div", { style: { display: "flex", gap: "0.5rem" }, children: [_jsx("button", { className: "btn secondary", onClick: () => {
+                                                    if (!editingSetup || !editingSetup.name.trim())
+                                                        return;
+                                                    updateSetupMutation.mutate({
+                                                        id: editingSetup.id,
+                                                        name: editingSetup.name,
+                                                        sortOrder: editingSetup.sortOrder
+                                                    });
+                                                }, children: "Save" }), _jsx("button", { className: "btn secondary", onClick: () => setEditingSetup(null), children: "Cancel" })] })] }, setup.id));
+                        }
+                        return (_jsxs("div", { style: {
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                borderTop: "1px solid #e6e9f0",
+                                padding: "0.5rem 0",
+                                justifyContent: "space-between"
+                            }, children: [_jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }, children: [_jsx("span", { className: "pill", children: setup.name }), _jsxs("span", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: ["Order: ", setup.sortOrder ?? 0] }), isDefault && (_jsx("span", { className: "pill", style: { background: "rgba(16,185,129,0.15)", color: "#34D399" }, children: "Default" }))] }), _jsxs("div", { style: { display: "flex", gap: "0.4rem" }, children: [_jsx("button", { className: "btn secondary", disabled: isDefault, onClick: () => setEditingSetup({
+                                                id: setup.id,
+                                                name: setup.name,
+                                                sortOrder: setup.sortOrder
+                                            }), children: "Edit" }), _jsx("button", { className: "btn danger", disabled: isDefault, onClick: () => deleteSetupMutation.mutate(setup.id), children: "Delete" })] })] }, setup.id));
+                    }), setups.length === 0 && _jsx("div", { style: { opacity: 0.7 }, children: "No setups yet." })] }), _jsx("h2", { children: "Tags" }), _jsx("div", { className: "card", style: { maxWidth: 420, marginBottom: "1rem" }, children: _jsxs("div", { style: { display: "flex", gap: "0.5rem", flexWrap: "wrap" }, children: [_jsx("input", { className: "input", placeholder: "Name", value: form.name, onChange: (e) => setForm((f) => ({ ...f, name: e.target.value })) }), _jsx("input", { className: "input", type: "color", value: form.color, onChange: (e) => setForm((f) => ({ ...f, color: e.target.value })) }), _jsx("button", { className: "btn", onClick: () => createMutation.mutate({ name: form.name, color: form.color }), children: "Add tag" })] }) }), _jsx("div", { className: "card", children: tags?.map((tag) => {
                     const isEditing = editing?.id === tag.id;
                     return (_jsx("div", { style: {
                             display: "flex",

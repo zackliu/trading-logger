@@ -7,7 +7,8 @@
   RecordInput,
   RecordWithRelations,
   ResultType,
-  Tag
+  Tag,
+  Setup
 } from "@trading-logger/shared";
 import { useEffect, useMemo, useState } from "react";
 import { api, getAttachmentUrl } from "../api/client";
@@ -17,6 +18,7 @@ import clsx from "clsx";
 type Props = {
   initial?: RecordWithRelations | null;
   tags: Tag[];
+  setups: Setup[];
   customFields: CustomField[];
   complianceChecks: ComplianceCheck[];
   onSaved: (record: RecordInput) => Promise<void>;
@@ -25,9 +27,10 @@ type Props = {
 
 type CustomValueMap = Record<number, CustomFieldValue>;
 
-const defaultState = (): RecordInput => ({
+const defaultState = (setupId: number): RecordInput => ({
   datetime: new Date().toISOString(),
   symbol: "",
+  setupId,
   accountType: "sim",
   result: "takeProfit",
   rMultiple: null,
@@ -42,16 +45,25 @@ const defaultState = (): RecordInput => ({
 export default function RecordForm({
   initial,
   tags,
+  setups,
   customFields,
   complianceChecks,
   onSaved,
   onCancel
 }: Props) {
+  const defaultSetupId = useMemo(() => {
+    if (!setups?.length) return 1;
+    const unknown = setups.find(
+      (s) => s.name.toLowerCase() === "unknown"
+    );
+    return unknown?.id ?? setups[0].id ?? 1;
+  }, [setups]);
   const [state, setState] = useState<RecordInput>(() =>
     initial
       ? {
           datetime: initial.datetime,
           symbol: initial.symbol,
+          setupId: initial.setupId,
           accountType: initial.accountType,
           result: initial.result,
           rMultiple: initial.rMultiple ?? null,
@@ -62,7 +74,7 @@ export default function RecordForm({
           attachmentIds: initial.attachments.map((a) => a.id!).filter(Boolean),
           complianceSelections: initial.complianceSelections ?? []
         }
-      : defaultState()
+      : defaultState(defaultSetupId)
   );
   const [customValueMap, setCustomValueMap] = useState<CustomValueMap>(() => {
     const map: CustomValueMap = {};
@@ -181,12 +193,12 @@ export default function RecordForm({
 
   useEffect(() => {
     if (!initial) {
-      setState(defaultState());
+      setState(defaultState(defaultSetupId));
       setCustomValueMap({});
       setAttachmentPreview(undefined);
       setComplianceSelections([]);
     }
-  }, [initial?.id]);
+  }, [initial?.id, defaultSetupId]);
 
   const setField = <K extends keyof RecordInput>(key: K, value: RecordInput[K]) =>
     setState((prev) => ({ ...prev, [key]: value }));
@@ -231,7 +243,7 @@ export default function RecordForm({
       datetime: toIsoFromLocal(payload.datetime)
     });
     if (!initial) {
-      setState(defaultState());
+      setState(defaultState(defaultSetupId));
       setCustomValueMap({});
       setAttachmentPreview(undefined);
     }
@@ -294,6 +306,21 @@ export default function RecordForm({
             onChange={(e) => setField("symbol", e.target.value)}
             placeholder="AAPL, BTCUSDT..."
           />
+        </label>
+        <label style={{ flex: "1 1 180px" }}>
+          <div>Setup</div>
+          <select
+            className="select"
+            value={state.setupId}
+            onChange={(e) => setField("setupId", Number(e.target.value))}
+          >
+            {setups.length === 0 && <option value={state.setupId}>Unknown</option>}
+            {setups.map((setup) => (
+              <option key={setup.id} value={setup.id}>
+                {setup.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label style={{ flex: "1 1 160px" }}>
           <div>Account</div>

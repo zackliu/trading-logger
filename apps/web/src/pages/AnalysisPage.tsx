@@ -8,13 +8,15 @@ import {
   Tag,
   AnalyticsSummary,
   BreakdownRow,
-  PaginatedRecords
+  PaginatedRecords,
+  Setup
 } from "@trading-logger/shared";
 import { api, getAttachmentUrl } from "../api/client";
 import { formatDateTime } from "../utils/format";
 
 const parseFilters = (params: URLSearchParams): Partial<RecordFilters> => {
   const tagIds = params.getAll("tagIds").map((t) => Number(t)).filter(Boolean);
+  const setupIds = params.getAll("setupIds").map((t) => Number(t)).filter(Boolean);
   const accountTypes = params.getAll("accountTypes") as any[];
   const results = params.getAll("results") as any[];
   const symbols = params.getAll("symbols");
@@ -26,6 +28,7 @@ const parseFilters = (params: URLSearchParams): Partial<RecordFilters> => {
     start: params.get("start") || undefined,
     end: params.get("end") || undefined,
     tagIds: tagIds.length ? tagIds : undefined,
+    setupIds: setupIds.length ? setupIds : undefined,
     accountTypes: accountTypes.length ? accountTypes : undefined,
     results: results.length ? results : undefined,
     symbols: symbols.length ? symbols : undefined,
@@ -42,6 +45,7 @@ const toParams = (filters: Partial<RecordFilters>) => {
   if (filters.start) params.set("start", filters.start);
   if (filters.end) params.set("end", filters.end);
   filters.tagIds?.forEach((t) => params.append("tagIds", String(t)));
+  filters.setupIds?.forEach((s) => params.append("setupIds", String(s)));
   filters.accountTypes?.forEach((a) => params.append("accountTypes", a));
   filters.results?.forEach((r) => params.append("results", r));
   filters.symbols?.forEach((s) => params.append("symbols", s));
@@ -64,6 +68,10 @@ export default function AnalysisPage() {
     queryKey: ["tags"],
     queryFn: api.listTags
   });
+  const { data: setups = [] } = useQuery<Setup[]>({
+    queryKey: ["setups"],
+    queryFn: api.listSetups
+  });
   const { data: customFields = [] } = useQuery<CustomField[]>({
     queryKey: ["customFields"],
     queryFn: api.listCustomFields
@@ -76,6 +84,10 @@ export default function AnalysisPage() {
   const tagBreakdown = useQuery<BreakdownRow[]>({
     queryKey: ["analytics", "tag", filters],
     queryFn: () => api.analyticsGroupBy(filters, "tag")
+  });
+  const setupBreakdown = useQuery<BreakdownRow[]>({
+    queryKey: ["analytics", "setup", filters],
+    queryFn: () => api.analyticsGroupBy(filters, "setup")
   });
   const symbolBreakdown = useQuery<BreakdownRow[]>({
     queryKey: ["analytics", "symbol", filters],
@@ -182,7 +194,7 @@ export default function AnalysisPage() {
         <div>
           <h2 style={{ margin: 0 }}>Analysis</h2>
           <div style={{ opacity: 0.7 }}>
-            Filter by time, symbol, tags, and custom dimensions.
+            Filter by time, setup, symbol, tags, and custom dimensions.
           </div>
         </div>
         <button className="btn secondary" onClick={() => setSearchParams(new URLSearchParams())}>
@@ -193,6 +205,7 @@ export default function AnalysisPage() {
       <FilterPanel
         filters={filters}
         tags={tags?.map((t) => ({ id: t.id!, label: t.name })) ?? []}
+        setups={setups?.map((s) => ({ id: s.id!, label: s.name })) ?? []}
         onChange={(next) => updateFilters({ ...filters, ...next })}
       />
 
@@ -233,6 +246,7 @@ export default function AnalysisPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+        <BreakdownTable title="By Setup" data={setupBreakdown.data ?? []} />
         <BreakdownTable title="By Tag" data={tagBreakdown.data ?? []} />
         <BreakdownTable title="By Symbol" data={symbolBreakdown.data ?? []} />
         <BreakdownTable title="By Complied" data={compliedBreakdown.data ?? []} />
@@ -288,8 +302,10 @@ export default function AnalysisPage() {
         <div className="card" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "0.75rem" }}>
           {recordsQuery.data?.items.map((r) => (
             <div key={r.id} style={{ border: "1px solid #e6e9f0", borderRadius: 10, padding: "0.6rem", background: "#f7f8fb" }}>
-              <div style={{ fontWeight: 600 }}>{r.symbol}</div>
-              <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>{formatDateTime(r.datetime)}</div>
+              <div style={{ fontWeight: 600 }}>{r.setup?.name ?? "Unknown"}</div>
+              <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>
+                {r.symbol} · {formatDateTime(r.datetime)}
+              </div>
               <div style={{ fontWeight: 600 }}>R: {r.rMultiple ?? "-"}</div>
               <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
                 {r.tags.map((t) => (
@@ -316,10 +332,12 @@ export default function AnalysisPage() {
 function FilterPanel({
   filters,
   tags,
+  setups,
   onChange
 }: {
   filters: Partial<RecordFilters>;
   tags: { id: number; label: string }[];
+  setups: { id: number; label: string }[];
   onChange: (f: Partial<RecordFilters>) => void;
 }) {
   return (
@@ -430,6 +448,26 @@ function FilterPanel({
           </select>
         </label>
         <label>
+          <div>Setup</div>
+          <select
+            className="select"
+            value={filters.setupIds?.[0] ?? ""}
+            onChange={(e) =>
+              onChange({
+                ...filters,
+                setupIds: e.target.value ? [Number(e.target.value)] : undefined
+              })
+            }
+          >
+            <option value="">Any</option>
+            {setups.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           <div>Tags</div>
           <select
             className="select"
@@ -475,6 +513,8 @@ function BreakdownTable({
   title: string;
   data: any[];
 }) {
+  const formatWinRate = (v: number | null | undefined) =>
+    v === null || v === undefined ? "-" : `${(v * 100).toFixed(1)}%`;
   return (
     <div className="card">
       <h3 style={{ marginTop: 0 }}>{title}</h3>
@@ -493,7 +533,7 @@ function BreakdownTable({
             <tr key={row.key} style={{ borderTop: "1px solid #e6e9f0" }}>
               <td>{row.label}</td>
               <td>{row.trades}</td>
-              <td>{row.winRate ? (row.winRate * 100).toFixed(1) + "%" : "-"}</td>
+              <td>{formatWinRate(row.winRate)}</td>
               <td>{row.profitFactor?.toFixed(2) ?? "-"}</td>
               <td>{row.expectancy?.toFixed(2) ?? "-"}</td>
             </tr>

@@ -14,6 +14,7 @@ import { registerCustomFieldRoutes } from "./routes/customFields.js";
 import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerAnalyticsRoutes } from "./routes/analytics.js";
 import { registerComplianceRoutes } from "./routes/compliance.js";
+import { registerSetupRoutes } from "./routes/setups.js";
 
 async function main() {
   const server = Fastify({
@@ -49,6 +50,7 @@ async function main() {
     async (app) => {
       await registerRecordRoutes(app);
       await registerTagRoutes(app);
+      await registerSetupRoutes(app);
       await registerCustomFieldRoutes(app);
       await registerAttachmentRoutes(app);
       await registerAnalyticsRoutes(app);

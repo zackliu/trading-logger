@@ -33,8 +33,10 @@ export default function RecordDetailPage() {
       <button className="btn secondary" onClick={() => navigate(-1)}>
         ← Back
       </button>
-      <h2 style={{ marginBottom: "0.25rem" }}>{data.symbol}</h2>
+      <h2 style={{ marginBottom: "0.25rem" }}>{data.setup?.name ?? "Unknown"}</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.5rem" }}>
+        <Detail label="Symbol" value={data.symbol} />
+        <Detail label="Setup" value={data.setup?.name ?? "Unknown"} />
         <Detail label="Datetime" value={formatDateTime(data.datetime)} />
         <Detail label="Account" value={data.accountType} />
         <Detail label="Result" value={data.result} />

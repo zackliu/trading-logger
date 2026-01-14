@@ -78,6 +78,14 @@ export const AttachmentSchema = z.object({
 });
 export type Attachment = z.infer<typeof AttachmentSchema>;
 
+export const SetupSchema = z.object({
+  id: z.number().int().positive().optional(),
+  name: z.string().min(1),
+  sortOrder: z.number().int().optional(),
+  createdAt: z.string().datetime().optional()
+});
+export type Setup = z.infer<typeof SetupSchema>;
+
 export const ComplianceSelectionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("checkbox"),
@@ -156,6 +164,7 @@ export const RecordBaseSchema = z.object({
   id: z.number().int().positive().optional(),
   datetime: z.string().datetime(),
   symbol: z.string().min(1),
+  setupId: z.number().int().positive(),
   accountType: AccountTypeEnum,
   result: ResultTypeEnum,
   rMultiple: z.number().nullable().optional(),
@@ -176,6 +185,7 @@ export const RecordInputSchema = RecordBaseSchema.omit({
 }).extend({
   rMultiple: z.number().nullable().default(null),
   tagIds: z.array(z.number().int()).default([]),
+  setupId: z.number().int().positive().default(1),
   customValues: z.array(CustomFieldValueSchema).default([]),
   attachmentIds: z.array(z.number().int()).default([]),
   entryEmotion: EmotionEnum.optional(),
@@ -190,6 +200,7 @@ export const RecordUpdateSchema = RecordInputSchema.partial().extend({
 export type RecordUpdate = z.infer<typeof RecordUpdateSchema>;
 
 export const RecordWithRelationsSchema = RecordBaseSchema.extend({
+  setup: SetupSchema,
   tags: z.array(TagSchema),
   attachments: z.array(AttachmentSchema),
   customValues: z.array(CustomFieldValueSchema),
@@ -250,6 +261,7 @@ export type CustomFieldFilter = z.infer<typeof CustomFieldFilterSchema>;
 export const RecordFilterSchema = DateRangeSchema.extend({
   symbols: z.array(z.string()).optional(),
   tagIds: z.array(z.number().int()).optional(),
+  setupIds: z.array(z.number().int()).optional(),
   complied: z.boolean().optional(),
   accountTypes: z.array(AccountTypeEnum).optional(),
   results: z.array(ResultTypeEnum).optional(),
@@ -261,6 +273,7 @@ export type RecordFilters = z.infer<typeof RecordFilterSchema>;
 
 export const GroupByEnum = z.enum([
   "tag",
+  "setup",
   "symbol",
   "complied",
   "accountType",

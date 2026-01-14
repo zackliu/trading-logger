@@ -10,6 +10,7 @@ export function normalizeFilters(filters: Partial<RecordFilters>): RecordFilters
     end: filters.end,
     symbols: filters.symbols?.filter(Boolean),
     tagIds: filters.tagIds?.length ? filters.tagIds : undefined,
+    setupIds: filters.setupIds?.length ? filters.setupIds : undefined,
     complied: filters.complied,
     accountTypes: filters.accountTypes?.length
       ? filters.accountTypes
@@ -44,6 +45,12 @@ export function buildRecordWhereClause(filters: RecordFilters) {
       )}))`
     );
     params.push(...filters.tagIds);
+  }
+  if (filters.setupIds?.length) {
+    clauses.push(
+      `r.setup_id IN (${placeholder(filters.setupIds.length)})`
+    );
+    params.push(...filters.setupIds);
   }
   if (filters.complied !== undefined) {
     clauses.push("r.complied = ?");

@@ -124,14 +124,26 @@ export default function RecordCard({ record, onEdit, onDelete }: Props) {
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: "1.05rem", fontWeight: 700 }}>{record.symbol}</div>
+          <div style={{ fontSize: "1.05rem", fontWeight: 700 }}>{record.setup?.name ?? "Unknown"}</div>
           <div style={{ opacity: 0.75, fontSize: "0.9rem" }}>
-            {formatDateTime(record.datetime)} · {record.accountType}
+            {record.symbol} · {formatDateTime(record.datetime)} · {record.accountType}
           </div>
           <div style={{ display: "flex", gap: "0.35rem", alignItems: "center", marginTop: "0.4rem", flexWrap: "wrap" }}>
             <span className="pill" style={{ background: "rgba(124, 58, 237, 0.15)", color: "#C4B5FD" }}>
               {resultLabels[record.result] ?? record.result}
             </span>
+            {record.tags?.map((tag) => (
+              <span
+                key={tag.id}
+                className="pill"
+                style={{
+                  background: tag.color ?? "rgba(0,0,0,0.06)",
+                  color: tag.color ? "#0b1d32" : "#0b1d32"
+                }}
+              >
+                {tag.name}
+              </span>
+            ))}
             {record.complied && (
               <span className="pill" style={{ background: "rgba(16, 185, 129, 0.15)", color: "#34D399" }}>
                 Complied
@@ -178,16 +190,6 @@ export default function RecordCard({ record, onEdit, onDelete }: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.4rem" }}>
         <Metric label="R Multiple" value={record.rMultiple ?? "-"} />
       </div>
-
-      {record.tags?.length > 0 && (
-        <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
-          {record.tags.map((tag) => (
-            <span key={tag.id} className="tag">
-              {tag.name}
-            </span>
-          ))}
-        </div>
-      )}
 
       {record.notes && (
         <p

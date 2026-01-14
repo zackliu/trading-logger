@@ -1,8 +1,10 @@
 import dayjs from "dayjs";
 import { sqlite, runMigrations } from "./db/client.js";
+import { ensureUnknownSetup } from "./services/setups.js";
 
 async function seed() {
   await runMigrations();
+  ensureUnknownSetup();
   const tags = [
     { name: "Momentum", color: "#4F46E5" },
     { name: "Reversal", color: "#F59E0B" },

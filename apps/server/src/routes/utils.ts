@@ -66,11 +66,10 @@ export const parseRecordFilters = (
     end: query.end,
     symbols: toArray(query.symbols),
     tagIds: toNumberArray(query.tagIds),
+    setupIds: toNumberArray(query.setupIds),
     complied: toBoolean(query.complied),
     accountTypes: toArray(query.accountTypes) as any,
     results: toArray(query.results) as any,
-    minPnl: query.minPnl ? Number(query.minPnl) : undefined,
-    maxPnl: query.maxPnl ? Number(query.maxPnl) : undefined,
     customFieldFilters: parseCustomFieldFilters(query.customFieldFilters)
   };
 };

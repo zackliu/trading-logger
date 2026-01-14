@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import { ComplianceCheck, Tag } from "@trading-logger/shared";
+import { ComplianceCheck, Setup, Tag } from "@trading-logger/shared";
 
 export default function SettingsTagsPage() {
   const queryClient = useQueryClient();
@@ -9,12 +9,19 @@ export default function SettingsTagsPage() {
     queryKey: ["tags"],
     queryFn: api.listTags
   });
+  const { data: setups = [] } = useQuery<Setup[]>({
+    queryKey: ["setups"],
+    queryFn: api.listSetups
+  });
   const { data: checks = [] } = useQuery<ComplianceCheck[]>({
     queryKey: ["complianceChecks"],
     queryFn: api.listComplianceChecks
   });
   const [form, setForm] = useState({ name: "", color: "#4F46E5" });
   const [editing, setEditing] = useState<{ id: number; name: string; color?: string } | null>(null);
+  const [setupName, setSetupName] = useState("");
+  const [setupSortOrder, setSetupSortOrder] = useState<string>("");
+  const [editingSetup, setEditingSetup] = useState<{ id: number; name: string; sortOrder?: number } | null>(null);
   const [checkLabel, setCheckLabel] = useState("");
   const [checkType, setCheckType] = useState<"checkbox" | "setup">("checkbox");
   const [optionsText, setOptionsText] = useState("");
@@ -41,6 +48,30 @@ export default function SettingsTagsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.deleteTag(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tags"] })
+  });
+  const createSetupMutation = useMutation({
+    mutationFn: (payload: { name: string; sortOrder?: number }) =>
+      api.createSetup(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["setups"] });
+      setSetupName("");
+      setSetupSortOrder("");
+    }
+  });
+  const updateSetupMutation = useMutation({
+    mutationFn: (input: { id: number; name: string; sortOrder?: number }) =>
+      api.updateSetup(input.id, {
+        name: input.name,
+        sortOrder: input.sortOrder
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["setups"] });
+      setEditingSetup(null);
+    }
+  });
+  const deleteSetupMutation = useMutation({
+    mutationFn: (id: number) => api.deleteSetup(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["setups"] })
   });
   const createCheckMutation = useMutation({
     mutationFn: api.createComplianceCheck,
@@ -82,6 +113,152 @@ export default function SettingsTagsPage() {
 
   return (
     <div>
+      <h2>Setups</h2>
+      <p style={{ opacity: 0.75, marginTop: 0 }}>
+        Manage the single-select setups used on records and filters. "Unknown" is always kept.
+      </p>
+      <div className="card" style={{ maxWidth: 460, marginBottom: "1rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <input
+            className="input"
+            placeholder="Name"
+            value={setupName}
+            onChange={(e) => setSetupName(e.target.value)}
+          />
+          <input
+            className="input"
+            type="number"
+            placeholder="Order"
+            value={setupSortOrder}
+            onChange={(e) => setSetupSortOrder(e.target.value)}
+            style={{ width: 120 }}
+          />
+          <button
+            className="btn"
+            onClick={() =>
+              createSetupMutation.mutate({
+                name: setupName,
+                sortOrder: setupSortOrder ? Number(setupSortOrder) : undefined
+              })
+            }
+            disabled={!setupName.trim()}
+          >
+            Add setup
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
+        {setups.map((setup) => {
+          const isEditing = editingSetup?.id === setup.id;
+          const isDefault = setup.name.toLowerCase() === "unknown";
+          if (isEditing) {
+            return (
+              <div
+                key={setup.id}
+                style={{
+                  display: "grid",
+                  gap: "0.5rem",
+                  borderTop: "1px solid #e6e9f0",
+                  padding: "0.5rem 0"
+                }}
+              >
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "0.5rem" }}>
+                  <input
+                    className="input"
+                    value={editingSetup?.name ?? ""}
+                    onChange={(e) =>
+                      setEditingSetup((prev) =>
+                        prev ? { ...prev, name: e.target.value } : prev
+                      )
+                    }
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    value={editingSetup?.sortOrder ?? ""}
+                    onChange={(e) =>
+                      setEditingSetup((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              sortOrder: e.target.value === "" ? undefined : Number(e.target.value)
+                            }
+                          : prev
+                      )
+                    }
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    className="btn secondary"
+                    onClick={() => {
+                      if (!editingSetup || !editingSetup.name.trim()) return;
+                      updateSetupMutation.mutate({
+                        id: editingSetup.id,
+                        name: editingSetup.name,
+                        sortOrder: editingSetup.sortOrder
+                      });
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button className="btn secondary" onClick={() => setEditingSetup(null)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div
+              key={setup.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                borderTop: "1px solid #e6e9f0",
+                padding: "0.5rem 0",
+                justifyContent: "space-between"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
+                <span className="pill">{setup.name}</span>
+                <span style={{ opacity: 0.65, fontSize: "0.9rem" }}>Order: {setup.sortOrder ?? 0}</span>
+                {isDefault && (
+                  <span className="pill" style={{ background: "rgba(16,185,129,0.15)", color: "#34D399" }}>
+                    Default
+                  </span>
+                )}
+              </div>
+              <div style={{ display: "flex", gap: "0.4rem" }}>
+                <button
+                  className="btn secondary"
+                  disabled={isDefault}
+                  onClick={() =>
+                    setEditingSetup({
+                      id: setup.id!,
+                      name: setup.name,
+                      sortOrder: setup.sortOrder
+                    })
+                  }
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn danger"
+                  disabled={isDefault}
+                  onClick={() => deleteSetupMutation.mutate(setup.id!)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {setups.length === 0 && <div style={{ opacity: 0.7 }}>No setups yet.</div>}
+      </div>
+
       <h2>Tags</h2>
       <div className="card" style={{ maxWidth: 420, marginBottom: "1rem" }}>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>

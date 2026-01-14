@@ -81,7 +81,10 @@ export default function RecordCard({ record, onEdit, onDelete }) {
                     justifyContent: "space-between",
                     gap: "0.75rem",
                     alignItems: "flex-start"
-                }, children: [_jsxs("div", { style: { minWidth: 0 }, children: [_jsx("div", { style: { fontSize: "1.05rem", fontWeight: 700 }, children: record.symbol }), _jsxs("div", { style: { opacity: 0.75, fontSize: "0.9rem" }, children: [formatDateTime(record.datetime), " \u00B7 ", record.accountType] }), _jsxs("div", { style: { display: "flex", gap: "0.35rem", alignItems: "center", marginTop: "0.4rem", flexWrap: "wrap" }, children: [_jsx("span", { className: "pill", style: { background: "rgba(124, 58, 237, 0.15)", color: "#C4B5FD" }, children: resultLabels[record.result] ?? record.result }), record.complied && (_jsx("span", { className: "pill", style: { background: "rgba(16, 185, 129, 0.15)", color: "#34D399" }, children: "Complied" }))] })] }), _jsxs("div", { style: { position: "relative" }, ref: menuRef, children: [_jsx("button", { className: "menu-button", onClick: (e) => {
+                }, children: [_jsxs("div", { style: { minWidth: 0 }, children: [_jsx("div", { style: { fontSize: "1.05rem", fontWeight: 700 }, children: record.setup?.name ?? "Unknown" }), _jsxs("div", { style: { opacity: 0.75, fontSize: "0.9rem" }, children: [record.symbol, " \u00B7 ", formatDateTime(record.datetime), " \u00B7 ", record.accountType] }), _jsxs("div", { style: { display: "flex", gap: "0.35rem", alignItems: "center", marginTop: "0.4rem", flexWrap: "wrap" }, children: [_jsx("span", { className: "pill", style: { background: "rgba(124, 58, 237, 0.15)", color: "#C4B5FD" }, children: resultLabels[record.result] ?? record.result }), record.tags?.map((tag) => (_jsx("span", { className: "pill", style: {
+                                            background: tag.color ?? "rgba(0,0,0,0.06)",
+                                            color: tag.color ? "#0b1d32" : "#0b1d32"
+                                        }, children: tag.name }, tag.id))), record.complied && (_jsx("span", { className: "pill", style: { background: "rgba(16, 185, 129, 0.15)", color: "#34D399" }, children: "Complied" }))] })] }), _jsxs("div", { style: { position: "relative" }, ref: menuRef, children: [_jsx("button", { className: "menu-button", onClick: (e) => {
                                     e.stopPropagation();
                                     setMenuOpen((v) => !v);
                                 }, "aria-label": "Record actions", children: "\u22EF" }), menuOpen && (_jsxs("div", { className: "menu", children: [_jsx("button", { className: "menu-item", onClick: () => {
@@ -90,7 +93,7 @@ export default function RecordCard({ record, onEdit, onDelete }) {
                                         }, children: "Edit" }), _jsx("button", { className: "menu-item danger", onClick: () => {
                                             setMenuOpen(false);
                                             onDelete(record.id);
-                                        }, children: "Delete" })] }))] })] }), _jsx("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.4rem" }, children: _jsx(Metric, { label: "R Multiple", value: record.rMultiple ?? "-" }) }), record.tags?.length > 0 && (_jsx("div", { style: { display: "flex", gap: "0.35rem", flexWrap: "wrap" }, children: record.tags.map((tag) => (_jsx("span", { className: "tag", children: tag.name }, tag.id))) })), record.notes && (_jsx("p", { style: {
+                                        }, children: "Delete" })] }))] })] }), _jsx("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.4rem" }, children: _jsx(Metric, { label: "R Multiple", value: record.rMultiple ?? "-" }) }), record.notes && (_jsx("p", { style: {
                     margin: 0,
                     opacity: 0.9,
                     lineHeight: 1.5,

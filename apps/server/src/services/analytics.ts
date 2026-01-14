@@ -133,6 +133,24 @@ export function groupByMetric(
       GROUP BY r.symbol
       ORDER BY trades DESC
     `;
+  } else if (by === "setup") {
+    query = `
+      SELECT 
+        s.id as key,
+        s.name as label,
+        COUNT(*) as trades,
+        SUM(${winCase}) as wins,
+        SUM(${lossCase}) as losses,
+        SUM(${breakevenCase}) as breakeven,
+        SUM(${winRCase}) as sumWinsR,
+        SUM(${lossRCase}) as sumLossR,
+        AVG(r.r_multiple) as avgR
+      FROM records r
+      JOIN setups s ON s.id = r.setup_id
+      WHERE ${where}
+      GROUP BY s.id, s.name
+      ORDER BY trades DESC
+    `;
   } else if (by === "complied") {
     query = `
       SELECT 

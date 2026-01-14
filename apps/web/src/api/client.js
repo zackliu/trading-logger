@@ -25,6 +25,7 @@ const queryFromFilters = (filters) => {
         params.set("end", filters.end);
     filters.symbols?.forEach((s) => params.append("symbols", s));
     filters.tagIds?.forEach((t) => params.append("tagIds", String(t)));
+    filters.setupIds?.forEach((s) => params.append("setupIds", String(s)));
     filters.accountTypes?.forEach((a) => params.append("accountTypes", a));
     filters.results?.forEach((r) => params.append("results", r));
     filters.entryEmotion?.forEach((e) => params.append("entryEmotion", e));
@@ -71,6 +72,26 @@ export const api = {
     },
     async listTags() {
         return request(`/tags`);
+    },
+    async listSetups() {
+        return request(`/setups`);
+    },
+    async createSetup(data) {
+        return request(`/setups`, {
+            method: "POST",
+            body: JSON.stringify(data)
+        });
+    },
+    async updateSetup(id, data) {
+        return request(`/setups/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(data)
+        });
+    },
+    async deleteSetup(id) {
+        return request(`/setups/${id}`, {
+            method: "DELETE"
+        });
     },
     async createTag(data) {
         return request(`/tags`, {

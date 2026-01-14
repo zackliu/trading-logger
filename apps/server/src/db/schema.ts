@@ -5,10 +5,21 @@ import {
   text
 } from "drizzle-orm/sqlite-core";
 
+export const setups = sqliteTable("setups", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP")
+});
+
 export const records = sqliteTable("records", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   datetime: text("datetime").notNull(),
   symbol: text("symbol").notNull(),
+  setupId: integer("setup_id")
+    .notNull()
+    .references(() => setups.id, { onDelete: "set default" })
+    .default(1),
   accountType: text("account_type").notNull(),
   result: text("result").notNull(),
   rMultiple: real("r_multiple"),

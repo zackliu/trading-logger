@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { api, getAttachmentUrl } from "../api/client";
 import { toInputDateTime, toIsoFromLocal } from "../utils/format";
 import clsx from "clsx";
-const defaultState = () => ({
+const defaultState = (setupId) => ({
     datetime: new Date().toISOString(),
     symbol: "",
+    setupId,
     accountType: "sim",
     result: "takeProfit",
     rMultiple: null,
@@ -16,11 +17,18 @@ const defaultState = () => ({
     attachmentIds: [],
     complianceSelections: []
 });
-export default function RecordForm({ initial, tags, customFields, complianceChecks, onSaved, onCancel }) {
+export default function RecordForm({ initial, tags, setups, customFields, complianceChecks, onSaved, onCancel }) {
+    const defaultSetupId = useMemo(() => {
+        if (!setups?.length)
+            return 1;
+        const unknown = setups.find((s) => s.name.toLowerCase() === "unknown");
+        return unknown?.id ?? setups[0].id ?? 1;
+    }, [setups]);
     const [state, setState] = useState(() => initial
         ? {
             datetime: initial.datetime,
             symbol: initial.symbol,
+            setupId: initial.setupId,
             accountType: initial.accountType,
             result: initial.result,
             rMultiple: initial.rMultiple ?? null,
@@ -31,7 +39,7 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
             attachmentIds: initial.attachments.map((a) => a.id).filter(Boolean),
             complianceSelections: initial.complianceSelections ?? []
         }
-        : defaultState());
+        : defaultState(defaultSetupId));
     const [customValueMap, setCustomValueMap] = useState(() => {
         const map = {};
         initial?.customValues.forEach((cv) => {
@@ -136,12 +144,12 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
     }, [initial]);
     useEffect(() => {
         if (!initial) {
-            setState(defaultState());
+            setState(defaultState(defaultSetupId));
             setCustomValueMap({});
             setAttachmentPreview(undefined);
             setComplianceSelections([]);
         }
-    }, [initial?.id]);
+    }, [initial?.id, defaultSetupId]);
     const setField = (key, value) => setState((prev) => ({ ...prev, [key]: value }));
     const handleCustomValue = (field, value) => {
         setCustomValueMap((prev) => ({
@@ -180,7 +188,7 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
             datetime: toIsoFromLocal(payload.datetime)
         });
         if (!initial) {
-            setState(defaultState());
+            setState(defaultState(defaultSetupId));
             setCustomValueMap({});
             setAttachmentPreview(undefined);
         }
@@ -219,7 +227,7 @@ export default function RecordForm({ initial, tags, customFields, complianceChec
         const file = e.dataTransfer.files?.[0];
         tryHandleFile(file);
     };
-    return (_jsxs("form", { className: "card", onSubmit: onSubmit, style: { marginBottom: "0.5rem" }, children: [_jsxs("div", { style: { display: "flex", gap: "1rem", flexWrap: "wrap" }, children: [_jsxs("label", { style: { flex: "1 1 220px" }, children: [_jsx("div", { children: "Date & Time" }), _jsx("input", { className: "input", type: "datetime-local", value: toInputDateTime(state.datetime), onChange: (e) => setField("datetime", e.target.value) })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Symbol" }), _jsx("input", { className: "input", value: state.symbol, onChange: (e) => setField("symbol", e.target.value), placeholder: "AAPL, BTCUSDT..." })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Account" }), _jsxs("select", { className: "select", value: state.accountType, onChange: (e) => setField("accountType", e.target.value), children: [_jsx("option", { value: "live", children: "Live" }), _jsx("option", { value: "sim", children: "Sim" })] })] })] }), _jsxs("div", { style: {
+    return (_jsxs("form", { className: "card", onSubmit: onSubmit, style: { marginBottom: "0.5rem" }, children: [_jsxs("div", { style: { display: "flex", gap: "1rem", flexWrap: "wrap" }, children: [_jsxs("label", { style: { flex: "1 1 220px" }, children: [_jsx("div", { children: "Date & Time" }), _jsx("input", { className: "input", type: "datetime-local", value: toInputDateTime(state.datetime), onChange: (e) => setField("datetime", e.target.value) })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Symbol" }), _jsx("input", { className: "input", value: state.symbol, onChange: (e) => setField("symbol", e.target.value), placeholder: "AAPL, BTCUSDT..." })] }), _jsxs("label", { style: { flex: "1 1 180px" }, children: [_jsx("div", { children: "Setup" }), _jsxs("select", { className: "select", value: state.setupId, onChange: (e) => setField("setupId", Number(e.target.value)), children: [setups.length === 0 && _jsx("option", { value: state.setupId, children: "Unknown" }), setups.map((setup) => (_jsx("option", { value: setup.id, children: setup.name }, setup.id)))] })] }), _jsxs("label", { style: { flex: "1 1 160px" }, children: [_jsx("div", { children: "Account" }), _jsxs("select", { className: "select", value: state.accountType, onChange: (e) => setField("accountType", e.target.value), children: [_jsx("option", { value: "live", children: "Live" }), _jsx("option", { value: "sim", children: "Sim" })] })] })] }), _jsxs("div", { style: {
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
                     gap: "0.75rem",

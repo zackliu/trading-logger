@@ -8,7 +8,8 @@ import {
   RecordWithRelations,
   Tag,
   PaginatedRecords,
-  ComplianceCheck
+  ComplianceCheck,
+  Setup
 } from "@trading-logger/shared";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
@@ -39,6 +40,7 @@ const queryFromFilters = (filters: Partial<RecordFilters>) => {
   if (filters.end) params.set("end", filters.end);
   filters.symbols?.forEach((s) => params.append("symbols", s));
   filters.tagIds?.forEach((t) => params.append("tagIds", String(t)));
+  filters.setupIds?.forEach((s) => params.append("setupIds", String(s)));
   filters.accountTypes?.forEach((a) => params.append("accountTypes", a));
   filters.results?.forEach((r) => params.append("results", r));
   filters.entryEmotion?.forEach((e) => params.append("entryEmotion", e));
@@ -89,6 +91,26 @@ export const api = {
   },
   async listTags() {
     return request<Tag[]>(`/tags`);
+  },
+  async listSetups() {
+    return request<Setup[]>(`/setups`);
+  },
+  async createSetup(data: Pick<Setup, "name" | "sortOrder">) {
+    return request<Setup>(`/setups`, {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
+  },
+  async updateSetup(id: number, data: Partial<Pick<Setup, "name" | "sortOrder">>) {
+    return request<Setup>(`/setups/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data)
+    });
+  },
+  async deleteSetup(id: number) {
+    return request<{ success: boolean }>(`/setups/${id}`, {
+      method: "DELETE"
+    });
   },
   async createTag(data: Pick<Tag, "name" | "color">) {
     return request<Tag>(`/tags`, {
