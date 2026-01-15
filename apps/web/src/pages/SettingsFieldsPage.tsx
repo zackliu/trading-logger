@@ -223,7 +223,7 @@ export default function SettingsFieldsPage() {
             <div>
               <div style={{ fontWeight: 600 }}>{field.label}</div>
               <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>
-                {field.key} Â· {field.type} {field.isRequired ? "Â· required" : ""}
+                {field.key} · {field.type} {field.isRequired ? "· required" : ""}
               </div>
               {field.options && field.options.length > 0 && (
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>

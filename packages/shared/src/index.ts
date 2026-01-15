@@ -287,6 +287,8 @@ export const AnalyticsSummarySchema = z.object({
   losses: z.number(),
   breakeven: z.number(),
   winRate: z.number(),
+  gte1RRate: z.number(),
+  lteNeg1RRate: z.number(),
   profitFactor: z.number().nullable(),
   expectancy: z.number().nullable(),
   avgR: z.number().nullable(),

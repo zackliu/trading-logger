@@ -483,7 +483,7 @@ export default function SettingsTagsPage() {
                 <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>
                   {c.type === "checkbox" ? "Checkbox" : "Setup"}{" "}
                   {c.type === "setup" && c.options?.length
-                    ? `â€¢ ${c.options.map((o) => o.label).join(", ")}`
+                    ? `• ${c.options.map((o) => o.label).join(", ")}`
                     : ""}
                 </div>
               </div>

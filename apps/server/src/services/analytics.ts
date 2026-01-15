@@ -9,6 +9,8 @@ import { buildRecordWhereClause, normalizeFilters } from "./filters.js";
 const winCase = `CASE WHEN r.result = 'takeProfit' OR r.r_multiple > 0 THEN 1 ELSE 0 END`;
 const lossCase = `CASE WHEN r.result = 'stopLoss' OR r.r_multiple < 0 THEN 1 ELSE 0 END`;
 const breakevenCase = `CASE WHEN r.result = 'breakeven' OR r.r_multiple = 0 THEN 1 ELSE 0 END`;
+const oneRCase = `CASE WHEN r.r_multiple >= 1 THEN 1 ELSE 0 END`;
+const fullStopCase = `CASE WHEN r.r_multiple <= -1 THEN 1 ELSE 0 END`;
 const winRCase = `CASE WHEN ${winCase} = 1 THEN r.r_multiple ELSE 0 END`;
 const lossRCase = `CASE WHEN ${lossCase} = 1 THEN r.r_multiple ELSE 0 END`;
 
@@ -29,6 +31,8 @@ export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary
         SUM(${winCase}) as wins,
         SUM(${lossCase}) as losses,
         SUM(${breakevenCase}) as breakeven,
+        SUM(${oneRCase}) as gte1RCount,
+        SUM(${fullStopCase}) as lteNeg1RCount,
         SUM(${winRCase}) as sumWinsR,
         SUM(${lossRCase}) as sumLossR,
         AVG(r.r_multiple) as avgR,
@@ -47,6 +51,8 @@ export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary
   const sumLossR = row?.sumLossR ?? 0;
 
   const winRate = totalTrades ? wins / totalTrades : 0;
+  const gte1RRate = totalTrades ? (row?.gte1RCount ?? 0) / totalTrades : 0;
+  const lteNeg1RRate = totalTrades ? (row?.lteNeg1RCount ?? 0) / totalTrades : 0;
   const payoffRatio =
     row?.avgWinR && row?.avgLossR ? row.avgWinR / Math.abs(row.avgLossR) : null;
   const profitFactor = calcProfitFactor(sumWinsR, sumLossR);
@@ -58,6 +64,8 @@ export function getSummary(rawFilters: Partial<RecordFilters>): AnalyticsSummary
     losses,
     breakeven,
     winRate,
+    gte1RRate,
+    lteNeg1RRate,
     profitFactor,
     expectancy,
     avgR: row?.avgR ?? null,

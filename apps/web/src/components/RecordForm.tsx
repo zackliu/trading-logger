@@ -861,7 +861,7 @@ export default function RecordForm({
               }}
               aria-label="Remove attachment"
             >
-              Ã—
+              ×
             </button>
           </div>
         )}

@@ -61,10 +61,6 @@ export default function RecordsPage() {
     queryKey: ["analytics", "setup", filters],
     queryFn: () => api.analyticsGroupBy(filters, "setup")
   });
-  const resultBreakdown = useQuery<BreakdownRow[]>({
-    queryKey: ["analytics", "result", filters],
-    queryFn: () => api.analyticsGroupBy(filters, "result")
-  });
 
   const createMutation = useMutation({
     mutationFn: (payload: RecordInput) => api.createRecord(payload),
@@ -172,7 +168,6 @@ export default function RecordsPage() {
             loading={summaryQuery.isLoading}
             tagRows={tagBreakdown.data ?? []}
             setupRows={setupBreakdown.data ?? []}
-            resultRows={resultBreakdown.data ?? []}
           />
         </aside>
 
@@ -502,14 +497,12 @@ function AnalyticsPanel({
   summary,
   loading,
   tagRows,
-  setupRows,
-  resultRows
+  setupRows
 }: {
   summary?: AnalyticsSummary;
   loading: boolean;
   tagRows: BreakdownRow[];
   setupRows: BreakdownRow[];
-  resultRows: BreakdownRow[];
 }) {
   return (
     <div className="card" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -525,6 +518,8 @@ function AnalyticsPanel({
         <div className="analytics-grid">
           <Stat label="Trades" value={summary.totalTrades} />
           <Stat label="Win Rate" value={`${(summary.winRate * 100).toFixed(1)}%`} />
+          <Stat label=">= 1R Rate" value={`${(summary.gte1RRate * 100).toFixed(1)}%`} />
+          <Stat label="<= -1R Rate" value={`${(summary.lteNeg1RRate * 100).toFixed(1)}%`} />
           <Stat label="Profit Factor" value={summary.profitFactor} />
           <Stat label="Expectancy (R)" value={summary.expectancy} />
           <Stat label="Avg R" value={summary.avgR} />
@@ -534,7 +529,6 @@ function AnalyticsPanel({
         </div>
       )}
 
-      <Breakdown title="By Result" rows={resultRows} />
       <Breakdown title="Top Setups" rows={setupRows} />
       <Breakdown title="Top Tags" rows={tagRows} />
     </div>

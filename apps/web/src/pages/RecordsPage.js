@@ -45,10 +45,6 @@ export default function RecordsPage() {
         queryKey: ["analytics", "setup", filters],
         queryFn: () => api.analyticsGroupBy(filters, "setup")
     });
-    const resultBreakdown = useQuery({
-        queryKey: ["analytics", "result", filters],
-        queryFn: () => api.analyticsGroupBy(filters, "result")
-    });
     const createMutation = useMutation({
         mutationFn: (payload) => api.createRecord(payload),
         onSuccess: () => {
@@ -113,7 +109,7 @@ export default function RecordsPage() {
                     gap: "1rem",
                     alignItems: "center",
                     marginBottom: "0.75rem"
-                }, children: [_jsxs("div", { children: [_jsx("h2", { style: { margin: 0 }, children: "Records & Analysis" }), _jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: "Filter trades, review stats, and edit records in one view." })] }), _jsx("button", { className: "btn", onClick: startNew, children: "New Record" })] }), _jsxs("div", { className: "split-grid", children: [_jsxs("aside", { className: "sidebar", children: [_jsx(FilterPanel, { filters: filters, tags: tags, setups: setups, onChange: updateFilters, onReset: () => setFilters({ page: 1, pageSize: 12 }) }), _jsx(AnalyticsPanel, { summary: summaryQuery.data, loading: summaryQuery.isLoading, tagRows: tagBreakdown.data ?? [], setupRows: setupBreakdown.data ?? [], resultRows: resultBreakdown.data ?? [] })] }), _jsxs("section", { className: "records-main", children: [formMode === "create" && (_jsx(RecordForm, { initial: null, tags: tags, setups: setups, customFields: customFields, complianceChecks: complianceChecks, onSaved: handleSave, onCancel: () => {
+            }, children: [_jsxs("div", { children: [_jsx("h2", { style: { margin: 0 }, children: "Records & Analysis" }), _jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: "Filter trades, review stats, and edit records in one view." })] }), _jsx("button", { className: "btn", onClick: startNew, children: "New Record" })] }), _jsxs("div", { className: "split-grid", children: [_jsxs("aside", { className: "sidebar", children: [_jsx(FilterPanel, { filters: filters, tags: tags, setups: setups, onChange: updateFilters, onReset: () => setFilters({ page: 1, pageSize: 12 }) }), _jsx(AnalyticsPanel, { summary: summaryQuery.data, loading: summaryQuery.isLoading, tagRows: tagBreakdown.data ?? [], setupRows: setupBreakdown.data ?? [] })] }), _jsxs("section", { className: "records-main", children: [formMode === "create" && (_jsx(RecordForm, { initial: null, tags: tags, setups: setups, customFields: customFields, complianceChecks: complianceChecks, onSaved: handleSave, onCancel: () => {
                                     setFormMode(null);
                                     setEditing(null);
                                     setInlineEditId(null);
@@ -185,8 +181,8 @@ function FilterPanel({ filters, tags, setups, onChange, onReset }) {
                                     exitEmotion: e.target.value ? [e.target.value] : undefined
                                 }), children: [_jsx("option", { value: "", children: "Any" }), emotions.map((opt) => (_jsx("option", { value: opt.value, children: opt.label }, opt.value)))] })] })] })] }));
 }
-function AnalyticsPanel({ summary, loading, tagRows, setupRows, resultRows }) {
-    return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Analysis" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Updates instantly with filters" })] }), loading && _jsx("div", { children: "Loading..." }), summary && (_jsxs("div", { className: "analytics-grid", children: [_jsx(Stat, { label: "Trades", value: summary.totalTrades }), _jsx(Stat, { label: "Win Rate", value: `${(summary.winRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "Profit Factor", value: summary.profitFactor }), _jsx(Stat, { label: "Expectancy (R)", value: summary.expectancy }), _jsx(Stat, { label: "Avg R", value: summary.avgR }), _jsx(Stat, { label: "Avg Win R", value: summary.avgWinR }), _jsx(Stat, { label: "Avg Loss R", value: summary.avgLossR }), _jsx(Stat, { label: "Payoff Ratio", value: summary.payoffRatio })] })), _jsx(Breakdown, { title: "By Result", rows: resultRows }), _jsx(Breakdown, { title: "Top Setups", rows: setupRows }), _jsx(Breakdown, { title: "Top Tags", rows: tagRows })] }));
+function AnalyticsPanel({ summary, loading, tagRows, setupRows }) {
+    return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Analysis" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Updates instantly with filters" })] }), loading && _jsx("div", { children: "Loading..." }), summary && (_jsxs("div", { className: "analytics-grid", children: [_jsx(Stat, { label: "Trades", value: summary.totalTrades }), _jsx(Stat, { label: "Win Rate", value: `${(summary.winRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: ">= 1R Rate", value: `${(summary.gte1RRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "<= -1R Rate", value: `${(summary.lteNeg1RRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "Profit Factor", value: summary.profitFactor }), _jsx(Stat, { label: "Expectancy (R)", value: summary.expectancy }), _jsx(Stat, { label: "Avg R", value: summary.avgR }), _jsx(Stat, { label: "Avg Win R", value: summary.avgWinR }), _jsx(Stat, { label: "Avg Loss R", value: summary.avgLossR }), _jsx(Stat, { label: "Payoff Ratio", value: summary.payoffRatio })] })), _jsx(Breakdown, { title: "Top Setups", rows: setupRows }), _jsx(Breakdown, { title: "Top Tags", rows: tagRows })] }));
 }
 function Stat({ label, value }) {
     const formatValue = (v) => {

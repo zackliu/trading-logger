@@ -101,10 +101,6 @@ export default function AnalysisPage() {
     queryKey: ["analytics", "accountType", filters],
     queryFn: () => api.analyticsGroupBy(filters, "accountType")
   });
-  const resultBreakdown = useQuery<BreakdownRow[]>({
-    queryKey: ["analytics", "result", filters],
-    queryFn: () => api.analyticsGroupBy(filters, "result")
-  });
   const customBreakdown = useQuery<BreakdownRow[]>({
     queryKey: ["analytics", "custom", customFieldGroup, filters],
     queryFn: () =>
@@ -233,6 +229,14 @@ export default function AnalysisPage() {
               label="Win Rate"
               value={`${(summaryQuery.data.winRate * 100).toFixed(1)}%`}
             />
+            <StatCard
+              label=">= 1R Rate"
+              value={`${(summaryQuery.data.gte1RRate * 100).toFixed(1)}%`}
+            />
+            <StatCard
+              label="<= -1R Rate"
+              value={`${(summaryQuery.data.lteNeg1RRate * 100).toFixed(1)}%`}
+            />
             <StatCard label="Profit Factor" value={summaryQuery.data.profitFactor ?? 0} />
             <StatCard label="Expectancy (R)" value={summaryQuery.data.expectancy ?? null} />
             <StatCard label="Avg R" value={summaryQuery.data.avgR ?? null} />
@@ -251,7 +255,6 @@ export default function AnalysisPage() {
         <BreakdownTable title="By Symbol" data={symbolBreakdown.data ?? []} />
         <BreakdownTable title="By Complied" data={compliedBreakdown.data ?? []} />
         <BreakdownTable title="By Account" data={accountBreakdown.data ?? []} />
-        <BreakdownTable title="By Result" data={resultBreakdown.data ?? []} />
         <div className="card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h3 style={{ margin: 0 }}>Custom Group</h3>
