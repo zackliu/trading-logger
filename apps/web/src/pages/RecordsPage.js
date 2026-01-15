@@ -12,6 +12,7 @@ export default function RecordsPage() {
     });
     const [formMode, setFormMode] = useState(null);
     const [editing, setEditing] = useState(null);
+    const [inlineEditId, setInlineEditId] = useState(null);
     const { data: tags = [] } = useQuery({
         queryKey: ["tags"],
         queryFn: api.listTags
@@ -70,7 +71,7 @@ export default function RecordsPage() {
         }
     });
     const handleSave = async (payload) => {
-        if (formMode === "edit" && editing?.id) {
+        if (inlineEditId && editing?.id === inlineEditId) {
             const updatePayload = { ...payload, id: editing.id };
             await updateMutation.mutateAsync({
                 id: editing.id,
@@ -82,12 +83,14 @@ export default function RecordsPage() {
         }
         setFormMode(null);
         setEditing(null);
+        setInlineEditId(null);
     };
     const handleDelete = async (id) => {
         await deleteMutation.mutateAsync([id]);
         if (editing?.id === id) {
             setFormMode(null);
             setEditing(null);
+            setInlineEditId(null);
         }
     };
     const records = recordQuery.data?.items ?? [];
@@ -95,13 +98,13 @@ export default function RecordsPage() {
     const totalPages = useMemo(() => Math.max(1, Math.ceil(total / (filters.pageSize ?? 12))), [total, filters.pageSize]);
     const startNew = () => {
         setFormMode("create");
+        setInlineEditId(null);
         setEditing(null);
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
     const startEdit = (record) => {
         setEditing(record);
-        setFormMode("edit");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setInlineEditId(record.id ?? null);
     };
     const updateFilters = (next) => setFilters((f) => ({ ...f, ...next, page: 1 }));
     return (_jsxs("div", { className: "records-page", children: [_jsxs("div", { style: {
@@ -110,10 +113,14 @@ export default function RecordsPage() {
                     gap: "1rem",
                     alignItems: "center",
                     marginBottom: "0.75rem"
-                }, children: [_jsxs("div", { children: [_jsx("h2", { style: { margin: 0 }, children: "Records & Analysis" }), _jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: "Filter trades, review stats, and edit records in one view." })] }), _jsx("button", { className: "btn", onClick: startNew, children: "New Record" })] }), _jsxs("div", { className: "split-grid", children: [_jsxs("aside", { className: "sidebar", children: [_jsx(FilterPanel, { filters: filters, tags: tags, setups: setups, onChange: updateFilters, onReset: () => setFilters({ page: 1, pageSize: 12 }) }), _jsx(AnalyticsPanel, { summary: summaryQuery.data, loading: summaryQuery.isLoading, tagRows: tagBreakdown.data ?? [], setupRows: setupBreakdown.data ?? [], resultRows: resultBreakdown.data ?? [] })] }), _jsxs("section", { className: "records-main", children: [formMode && (_jsx(RecordForm, { initial: formMode === "edit" ? editing : null, tags: tags, setups: setups, customFields: customFields, complianceChecks: complianceChecks, onSaved: handleSave, onCancel: () => {
+                }, children: [_jsxs("div", { children: [_jsx("h2", { style: { margin: 0 }, children: "Records & Analysis" }), _jsx("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: "Filter trades, review stats, and edit records in one view." })] }), _jsx("button", { className: "btn", onClick: startNew, children: "New Record" })] }), _jsxs("div", { className: "split-grid", children: [_jsxs("aside", { className: "sidebar", children: [_jsx(FilterPanel, { filters: filters, tags: tags, setups: setups, onChange: updateFilters, onReset: () => setFilters({ page: 1, pageSize: 12 }) }), _jsx(AnalyticsPanel, { summary: summaryQuery.data, loading: summaryQuery.isLoading, tagRows: tagBreakdown.data ?? [], setupRows: setupBreakdown.data ?? [], resultRows: resultBreakdown.data ?? [] })] }), _jsxs("section", { className: "records-main", children: [formMode === "create" && (_jsx(RecordForm, { initial: null, tags: tags, setups: setups, customFields: customFields, complianceChecks: complianceChecks, onSaved: handleSave, onCancel: () => {
                                     setFormMode(null);
                                     setEditing(null);
-                                } }, formMode === "edit" ? editing?.id ?? "edit" : "create")), _jsx("div", { className: "record-grid", children: records.map((record) => (_jsx(RecordCard, { record: record, onEdit: startEdit, onDelete: handleDelete }, record.id))) }), records.length === 0 && (_jsx("div", { className: "card", style: { textAlign: "center", padding: "1.5rem" }, children: "No records match the current filters." })), _jsxs("div", { style: {
+                                    setInlineEditId(null);
+                                } }, "create")), _jsx("div", { className: "record-grid", children: records.map((record) => inlineEditId === record.id ? (_jsx("div", { className: "card edit-card-anim", children: _jsx(RecordForm, { initial: record, tags: tags, setups: setups, customFields: customFields, complianceChecks: complianceChecks, onSaved: handleSave, onCancel: () => {
+                                            setInlineEditId(null);
+                                            setEditing(null);
+                                        } }, `edit-${record.id}`) }, record.id)) : (_jsx(RecordCard, { record: record, onEdit: startEdit, onDelete: handleDelete }, record.id))) }), records.length === 0 && (_jsx("div", { className: "card", style: { textAlign: "center", padding: "1.5rem" }, children: "No records match the current filters." })), _jsxs("div", { style: {
                                     display: "flex",
                                     gap: "0.5rem",
                                     alignItems: "center",

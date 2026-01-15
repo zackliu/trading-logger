@@ -133,6 +133,21 @@ button {
   font-size: 0.85rem;
 }
 
+.edit-card-anim {
+  animation: popIn 160ms ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.985);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .split-grid {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) 2fr;

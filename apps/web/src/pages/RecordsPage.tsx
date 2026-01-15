@@ -23,8 +23,9 @@ export default function RecordsPage() {
     page: 1,
     pageSize: 12
   });
-  const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
+  const [formMode, setFormMode] = useState<"create" | null>(null);
   const [editing, setEditing] = useState<RecordWithRelations | null>(null);
+  const [inlineEditId, setInlineEditId] = useState<number | null>(null);
 
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ["tags"],
@@ -89,7 +90,7 @@ export default function RecordsPage() {
   });
 
   const handleSave = async (payload: RecordInput) => {
-    if (formMode === "edit" && editing?.id) {
+    if (inlineEditId && editing?.id === inlineEditId) {
       const updatePayload: RecordUpdate = { ...payload, id: editing.id };
       await updateMutation.mutateAsync({
         id: editing.id,
@@ -100,6 +101,7 @@ export default function RecordsPage() {
     }
     setFormMode(null);
     setEditing(null);
+    setInlineEditId(null);
   };
 
   const handleDelete = async (id: number) => {
@@ -107,6 +109,7 @@ export default function RecordsPage() {
     if (editing?.id === id) {
       setFormMode(null);
       setEditing(null);
+      setInlineEditId(null);
     }
   };
 
@@ -119,14 +122,14 @@ export default function RecordsPage() {
 
   const startNew = () => {
     setFormMode("create");
+    setInlineEditId(null);
     setEditing(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startEdit = (record: RecordWithRelations) => {
     setEditing(record);
-    setFormMode("edit");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setInlineEditId(record.id ?? null);
   };
 
   const updateFilters = (next: Partial<RecordFilters>) =>
@@ -174,10 +177,10 @@ export default function RecordsPage() {
         </aside>
 
         <section className="records-main">
-          {formMode && (
+          {formMode === "create" && (
             <RecordForm
-              key={formMode === "edit" ? editing?.id ?? "edit" : "create"}
-              initial={formMode === "edit" ? editing : null}
+              key="create"
+              initial={null}
               tags={tags}
               setups={setups}
               customFields={customFields}
@@ -186,19 +189,38 @@ export default function RecordsPage() {
               onCancel={() => {
                 setFormMode(null);
                 setEditing(null);
+                setInlineEditId(null);
               }}
             />
           )}
 
           <div className="record-grid">
-            {records.map((record) => (
-              <RecordCard
-                key={record.id}
-                record={record}
-                onEdit={startEdit}
-                onDelete={handleDelete}
-              />
-            ))}
+            {records.map((record) =>
+              inlineEditId === record.id ? (
+                <div key={record.id} className="card edit-card-anim">
+                  <RecordForm
+                    key={`edit-${record.id}`}
+                    initial={record}
+                    tags={tags}
+                    setups={setups}
+                    customFields={customFields}
+                    complianceChecks={complianceChecks}
+                    onSaved={handleSave}
+                    onCancel={() => {
+                      setInlineEditId(null);
+                      setEditing(null);
+                    }}
+                  />
+                </div>
+              ) : (
+                <RecordCard
+                  key={record.id}
+                  record={record}
+                  onEdit={startEdit}
+                  onDelete={handleDelete}
+                />
+              )
+            )}
           </div>
 
           {records.length === 0 && (
