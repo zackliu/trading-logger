@@ -167,6 +167,17 @@ export default function AnalysisPage() {
                 }, children: summaryQuery.data ? (_jsxs(_Fragment, { children: [_jsx(StatCard, { label: "Total", value: summaryQuery.data.totalTrades }), _jsx(StatCard, { label: "Win Rate", value: `${(summaryQuery.data.winRate * 100).toFixed(1)}%` }), _jsx(StatCard, { label: ">= 1R Rate", value: `${(summaryQuery.data.gte1RRate * 100).toFixed(1)}%` }), _jsx(StatCard, { label: "<= -1R Rate", value: `${(summaryQuery.data.lteNeg1RRate * 100).toFixed(1)}%` }), _jsx(StatCard, { label: "Profit Factor", value: summaryQuery.data.profitFactor ?? 0 }), _jsx(StatCard, { label: "Expectancy (R)", value: summaryQuery.data.expectancy ?? null }), _jsx(StatCard, { label: "Avg R", value: summaryQuery.data.avgR ?? null }), _jsx(StatCard, { label: "Avg Win R", value: summaryQuery.data.avgWinR ?? null }), _jsx(StatCard, { label: "Avg Loss R", value: summaryQuery.data.avgLossR ?? null }), _jsx(StatCard, { label: "Payoff Ratio", value: summaryQuery.data.payoffRatio ?? null })] })) : (_jsx("div", { children: "Loading..." })) }), _jsxs("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }, children: [_jsx(BreakdownTable, { title: "By Setup", data: setupBreakdown.data ?? [] }), _jsx(BreakdownTable, { title: "By Tag", data: tagBreakdown.data ?? [] }), _jsx(BreakdownTable, { title: "By Symbol", data: symbolBreakdown.data ?? [] }), _jsx(BreakdownTable, { title: "By Complied", data: compliedBreakdown.data ?? [] }), _jsx(BreakdownTable, { title: "By Account", data: accountBreakdown.data ?? [] }), _jsxs("div", { className: "card", children: [_jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [_jsx("h3", { style: { margin: 0 }, children: "Custom Group" }), _jsxs("select", { className: "select", value: customFieldGroup ?? "", onChange: (e) => setCustomFieldGroup(e.target.value || null), children: [_jsx("option", { value: "", children: "Select field" }), customFields?.map((f) => (_jsx("option", { value: f.id, children: f.label }, f.id)))] })] }), customBreakdown.data && customBreakdown.data.length > 0 ? (_jsxs("table", { style: { width: "100%", borderCollapse: "collapse", marginTop: "0.5rem" }, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { children: "Value" }), _jsx("th", { children: "Trades" }), _jsx("th", { children: "Win%" }), _jsx("th", { children: "PF" }), _jsx("th", { children: "Expectancy" })] }) }), _jsx("tbody", { children: customBreakdown.data.map((row) => (_jsxs("tr", { style: { borderTop: "1px solid #e6e9f0" }, children: [_jsx("td", { children: row.label }), _jsx("td", { children: row.trades }), _jsx("td", { children: row.winRate ? (row.winRate * 100).toFixed(1) + "%" : "-" }), _jsx("td", { children: row.profitFactor?.toFixed(2) ?? "-" }), _jsx("td", { children: row.expectancy?.toFixed(2) ?? "-" })] }, row.key))) })] })) : (_jsx("div", { style: { marginTop: "0.5rem", opacity: 0.8 }, children: "Select a field to pivot." }))] })] }), _jsxs("div", { style: { marginTop: "1rem" }, children: [_jsx("h3", { children: "Records Browser" }), _jsx("div", { className: "card", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "0.75rem" }, children: recordsQuery.data?.items.map((r) => (_jsxs("div", { style: { border: "1px solid #e6e9f0", borderRadius: 10, padding: "0.6rem", background: "#f7f8fb" }, children: [_jsx("div", { style: { fontWeight: 600 }, children: r.setup?.name ?? "Unknown" }), _jsxs("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: [r.symbol, " \u00B7 ", formatDateTime(r.datetime)] }), _jsxs("div", { style: { fontWeight: 600 }, children: ["R: ", r.rMultiple ?? "-"] }), _jsx("div", { style: { display: "flex", gap: "0.25rem", flexWrap: "wrap" }, children: r.tags.map((t) => (_jsx("span", { className: "tag", children: t.name }, t.id))) }), r.attachments[0] && (_jsx("img", { src: getAttachmentUrl(r.attachments[0].filePath), alt: "thumb", style: { width: "100%", borderRadius: 8, marginTop: "0.35rem" } }))] }, r.id))) })] })] }));
 }
 function FilterPanel({ filters, tags, setups, onChange }) {
+    const [tagMenuOpen, setTagMenuOpen] = useState(false);
+    const selectedTagIds = filters.tagIds ?? [];
+    const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id));
+    const toggleTag = (id) => {
+        const current = filters.tagIds ?? [];
+        const next = current.includes(id) ? current.filter((t) => t !== id) : [...current, id];
+        onChange({
+            ...filters,
+            tagIds: next.length ? next : undefined
+        });
+    };
     return (_jsx("div", { className: "card", style: { margin: "1rem 0" }, children: _jsxs("div", { style: { display: "flex", gap: "0.75rem", flexWrap: "wrap" }, children: [_jsxs("label", { children: [_jsx("div", { children: "From" }), _jsx("input", { className: "input", type: "date", value: filters.start ? filters.start.slice(0, 10) : "", onChange: (e) => onChange({
                                 ...filters,
                                 start: e.target.value ? new Date(e.target.value).toISOString() : undefined
@@ -197,10 +208,31 @@ function FilterPanel({ filters, tags, setups, onChange }) {
                             }, children: [_jsx("option", { value: "", children: "Any" }), _jsx("option", { value: "yes", children: "Yes" }), _jsx("option", { value: "no", children: "No" })] })] }), _jsxs("label", { children: [_jsx("div", { children: "Setup" }), _jsxs("select", { className: "select", value: filters.setupIds?.[0] ?? "", onChange: (e) => onChange({
                                 ...filters,
                                 setupIds: e.target.value ? [Number(e.target.value)] : undefined
-                            }), children: [_jsx("option", { value: "", children: "Any" }), setups.map((s) => (_jsx("option", { value: s.id, children: s.label }, s.id)))] })] }), _jsxs("label", { children: [_jsx("div", { children: "Tags" }), _jsxs("select", { className: "select", value: filters.tagIds?.[0] ?? "", onChange: (e) => onChange({
-                                ...filters,
-                                tagIds: e.target.value ? [Number(e.target.value)] : undefined
-                            }), children: [_jsx("option", { value: "", children: "Any" }), tags.map((t) => (_jsx("option", { value: t.id, children: t.label }, t.id)))] })] })] }) }));
+                            }), children: [_jsx("option", { value: "", children: "Any" }), setups.map((s) => (_jsx("option", { value: s.id, children: s.label }, s.id)))] })] }), _jsxs("label", { children: [_jsx("div", { children: "Tags" }), _jsxs("div", { style: {
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                flexWrap: "wrap"
+                            }, children: [_jsx("div", { style: { display: "flex", gap: "0.4rem", flexWrap: "wrap", flex: 1 }, children: selectedTags.length === 0 ? (_jsx("span", { className: "pill", style: { background: "#eef2ff", border: "1px solid #e6e9f0" }, children: "All tags" })) : (selectedTags.map((tag) => (_jsx("span", { className: "pill", style: { background: "#eef2ff", border: "1px solid #e6e9f0" }, children: tag.label }, tag.id)))) }), _jsx("button", { type: "button", className: "btn secondary", style: { padding: "0.35rem 0.6rem" }, onClick: () => setTagMenuOpen((o) => !o), children: tagMenuOpen ? "Close" : "Select" })] }), tagMenuOpen && (_jsxs("div", { className: "card", style: {
+                                marginTop: "0.5rem",
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "0.4rem",
+                                background: "#f7f8fb"
+                            }, children: [_jsx("button", { type: "button", className: "btn secondary", style: { padding: "0.35rem 0.6rem" }, onClick: () => {
+                                        onChange({ ...filters, tagIds: undefined });
+                                        setTagMenuOpen(false);
+                                    }, children: "All tags" }), tags.map((tag) => {
+                                    const selected = selectedTagIds.includes(tag.id);
+                                    return (_jsx("button", { type: "button", onClick: () => toggleTag(tag.id), style: {
+                                            padding: "0.35rem 0.6rem",
+                                            borderRadius: "999px",
+                                            border: "1px solid #d5d9e3",
+                                            background: selected ? "#2563eb" : "#fff",
+                                            color: selected ? "#fff" : "#111827",
+                                            cursor: "pointer"
+                                        }, children: tag.label }, tag.id));
+                                })] }))] })] }) }));
 }
 function StatCard({ label, value }) {
     const formatValue = (v) => {

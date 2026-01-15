@@ -279,6 +279,21 @@ function FilterPanel({
   onChange: (f: Partial<RecordFilters>) => void;
   onReset: () => void;
 }) {
+  const [tagMenuOpen, setTagMenuOpen] = useState(false);
+  const selectedTagIds = filters.tagIds ?? [];
+  const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id!));
+
+  const toggleTag = (id: number) => {
+    const current = filters.tagIds ?? [];
+    const next = current.includes(id)
+      ? current.filter((t) => t !== id)
+      : [...current, id];
+    onChange({
+      ...filters,
+      tagIds: next.length ? next : undefined
+    });
+  };
+
   const emotions = [
   { value: "fear", label: "恐惧/焦虑" },
   { value: "greed", label: "贪婪/兴奋" },
@@ -430,23 +445,87 @@ function FilterPanel({
         </label>
         <label>
           <div>Tags</div>
-          <select
-            className="select"
-            value={filters.tagIds?.[0] ?? ""}
-            onChange={(e) =>
-              onChange({
-                ...filters,
-                tagIds: e.target.value ? [Number(e.target.value)] : undefined
-              })
-            }
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              flexWrap: "wrap"
+            }}
           >
-            <option value="">All</option>
-            {tags?.map((tag) => (
-              <option key={tag.id} value={tag.id}>
-                {tag.name}
-              </option>
-            ))}
-          </select>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", flex: 1 }}>
+              {selectedTags.length === 0 ? (
+                <span
+                  className="pill"
+                  style={{ background: "#eef2ff", border: "1px solid #e6e9f0" }}
+                >
+                  All tags
+                </span>
+              ) : (
+                selectedTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="pill"
+                    style={{ background: "#eef2ff", border: "1px solid #e6e9f0" }}
+                  >
+                    {tag.name}
+                  </span>
+                ))
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn secondary"
+              style={{ padding: "0.35rem 0.6rem" }}
+              onClick={() => setTagMenuOpen((o) => !o)}
+            >
+              {tagMenuOpen ? "Close" : "Select"}
+            </button>
+          </div>
+          {tagMenuOpen && (
+            <div
+              className="card"
+              style={{
+                marginTop: "0.5rem",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.4rem",
+                background: "#f7f8fb"
+              }}
+            >
+              <button
+                type="button"
+                className="btn secondary"
+                style={{ padding: "0.35rem 0.6rem" }}
+                onClick={() => {
+                  onChange({ ...filters, tagIds: undefined });
+                  setTagMenuOpen(false);
+                }}
+              >
+                All tags
+              </button>
+              {tags?.map((tag) => {
+                const selected = selectedTagIds.includes(tag.id!);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id!)}
+                    style={{
+                      padding: "0.35rem 0.6rem",
+                      borderRadius: "999px",
+                      border: "1px solid #d5d9e3",
+                      background: selected ? "#2563eb" : "#fff",
+                      color: selected ? "#fff" : "#111827",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </label>
         <label>
           <div>Entry Emotion</div>

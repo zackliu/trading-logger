@@ -343,6 +343,21 @@ function FilterPanel({
   setups: { id: number; label: string }[];
   onChange: (f: Partial<RecordFilters>) => void;
 }) {
+  const [tagMenuOpen, setTagMenuOpen] = useState(false);
+  const selectedTagIds = filters.tagIds ?? [];
+  const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id));
+
+  const toggleTag = (id: number) => {
+    const current = filters.tagIds ?? [];
+    const next = current.includes(id)
+      ? current.filter((t) => t !== id)
+      : [...current, id];
+    onChange({
+      ...filters,
+      tagIds: next.length ? next : undefined
+    });
+  };
+
   return (
     <div className="card" style={{ margin: "1rem 0" }}>
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -472,23 +487,87 @@ function FilterPanel({
         </label>
         <label>
           <div>Tags</div>
-          <select
-            className="select"
-            value={filters.tagIds?.[0] ?? ""}
-            onChange={(e) =>
-              onChange({
-                ...filters,
-                tagIds: e.target.value ? [Number(e.target.value)] : undefined
-              })
-            }
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              flexWrap: "wrap"
+            }}
           >
-            <option value="">Any</option>
-            {tags.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", flex: 1 }}>
+              {selectedTags.length === 0 ? (
+                <span
+                  className="pill"
+                  style={{ background: "#eef2ff", border: "1px solid #e6e9f0" }}
+                >
+                  All tags
+                </span>
+              ) : (
+                selectedTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="pill"
+                    style={{ background: "#eef2ff", border: "1px solid #e6e9f0" }}
+                  >
+                    {tag.label}
+                  </span>
+                ))
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn secondary"
+              style={{ padding: "0.35rem 0.6rem" }}
+              onClick={() => setTagMenuOpen((o) => !o)}
+            >
+              {tagMenuOpen ? "Close" : "Select"}
+            </button>
+          </div>
+          {tagMenuOpen && (
+            <div
+              className="card"
+              style={{
+                marginTop: "0.5rem",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.4rem",
+                background: "#f7f8fb"
+              }}
+            >
+              <button
+                type="button"
+                className="btn secondary"
+                style={{ padding: "0.35rem 0.6rem" }}
+                onClick={() => {
+                  onChange({ ...filters, tagIds: undefined });
+                  setTagMenuOpen(false);
+                }}
+              >
+                All tags
+              </button>
+              {tags.map((tag) => {
+                const selected = selectedTagIds.includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    style={{
+                      padding: "0.35rem 0.6rem",
+                      borderRadius: "999px",
+                      border: "1px solid #d5d9e3",
+                      background: selected ? "#2563eb" : "#fff",
+                      color: selected ? "#fff" : "#111827",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </label>
       </div>
     </div>

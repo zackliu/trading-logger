@@ -40,11 +40,11 @@ export function buildRecordWhereClause(filters: RecordFilters) {
   }
   if (filters.tagIds?.length) {
     clauses.push(
-      `EXISTS (SELECT 1 FROM record_tags rt WHERE rt.record_id = r.id AND rt.tag_id IN (${placeholder(
+      `(SELECT COUNT(DISTINCT rt.tag_id) FROM record_tags rt WHERE rt.record_id = r.id AND rt.tag_id IN (${placeholder(
         filters.tagIds.length
-      )}))`
+      )})) = ?`
     );
-    params.push(...filters.tagIds);
+    params.push(...filters.tagIds, filters.tagIds.length);
   }
   if (filters.setupIds?.length) {
     clauses.push(

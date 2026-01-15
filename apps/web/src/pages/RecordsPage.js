@@ -130,57 +130,121 @@ export default function RecordsPage() {
                                         })), children: "Next" })] })] })] })] }));
 }
 function FilterPanel({ filters, tags, setups, onChange, onReset }) {
+    const [tagMenuOpen, setTagMenuOpen] = useState(false);
+    const selectedTagIds = filters.tagIds ?? [];
+    const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id));
+    const toggleTag = (id) => {
+        const current = filters.tagIds ?? [];
+        const next = current.includes(id) ? current.filter((t) => t !== id) : [...current, id];
+        onChange({
+            ...filters,
+            tagIds: next.length ? next : undefined
+        });
+    };
     const emotions = [
-        { value: "fear", label: "恐惧/焦虑" },
-        { value: "greed", label: "贪婪/兴奋" },
-        { value: "anger", label: "愤怒/报复" },
-        { value: "overconfidence", label: "自负/亢奋" },
-        { value: "regret", label: "懊悔/错过恐惧" },
-        { value: "hope", label: "希望/否认" },
-        { value: "boredom", label: "无聊/寻刺激" },
-        { value: "fatigue", label: "疲劳/麻木" },
-        { value: "confusion", label: "困惑/信息过载" },
-        { value: "calm", label: "平静/专注" }
+        { value: "fear", label: "Fear" },
+        { value: "greed", label: "Greed" },
+        { value: "anger", label: "Anger" },
+        { value: "overconfidence", label: "Overconfidence" },
+        { value: "regret", label: "Regret" },
+        { value: "hope", label: "Hope" },
+        { value: "boredom", label: "Boredom" },
+        { value: "fatigue", label: "Fatigue" },
+        { value: "confusion", label: "Confusion" },
+        { value: "calm", label: "Calm" }
     ];
-    return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [_jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Filters" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Narrow records and analytics" })] }), _jsx("button", { className: "btn secondary", type: "button", onClick: onReset, children: "Reset" })] }), _jsxs("div", { style: { display: "flex", flexDirection: "column", gap: "0.65rem" }, children: [_jsxs("label", { children: [_jsx("div", { children: "From" }), _jsx("input", { className: "input", type: "date", value: filters.start ? filters.start.slice(0, 10) : "", onChange: (e) => onChange({
-                                    ...filters,
-                                    start: e.target.value ? new Date(e.target.value).toISOString() : undefined
-                                }) })] }), _jsxs("label", { children: [_jsx("div", { children: "To" }), _jsx("input", { className: "input", type: "date", value: filters.end ? filters.end.slice(0, 10) : "", onChange: (e) => onChange({
-                                    ...filters,
-                                    end: e.target.value ? new Date(e.target.value).toISOString() : undefined
-                                }) })] }), _jsxs("label", { children: [_jsx("div", { children: "Symbol" }), _jsx("input", { className: "input", placeholder: "AAPL", value: filters.symbols?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    symbols: e.target.value ? [e.target.value] : undefined
-                                }) })] }), _jsxs("label", { children: [_jsx("div", { children: "Account" }), _jsxs("select", { className: "select", value: filters.accountTypes?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    accountTypes: e.target.value ? [e.target.value] : undefined
-                                }), children: [_jsx("option", { value: "", children: "Any" }), _jsx("option", { value: "live", children: "Live" }), _jsx("option", { value: "sim", children: "Sim" })] })] }), _jsxs("label", { children: [_jsx("div", { children: "Result" }), _jsxs("select", { className: "select", value: filters.results?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    results: e.target.value ? [e.target.value] : undefined
-                                }), children: [_jsx("option", { value: "", children: "Any" }), _jsx("option", { value: "takeProfit", children: "Take Profit" }), _jsx("option", { value: "stopLoss", children: "Stop Loss" }), _jsx("option", { value: "breakeven", children: "Breakeven" }), _jsx("option", { value: "manualExit", children: "Manual Exit" })] })] }), _jsxs("label", { children: [_jsx("div", { children: "Complied" }), _jsxs("select", { className: "select", value: filters.complied === undefined
-                                    ? ""
-                                    : filters.complied
-                                        ? "yes"
-                                        : "no", onChange: (e) => {
-                                    const v = e.target.value;
-                                    onChange({
-                                        ...filters,
-                                        complied: v === "" ? undefined : v === "yes"
-                                    });
-                                }, children: [_jsx("option", { value: "", children: "Any" }), _jsx("option", { value: "yes", children: "Yes" }), _jsx("option", { value: "no", children: "No" })] })] }), _jsxs("label", { children: [_jsx("div", { children: "Setup" }), _jsxs("select", { className: "select", value: filters.setupIds?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    setupIds: e.target.value ? [Number(e.target.value)] : undefined
-                                }), children: [_jsx("option", { value: "", children: "All" }), setups?.map((setup) => (_jsx("option", { value: setup.id, children: setup.name }, setup.id)))] })] }), _jsxs("label", { children: [_jsx("div", { children: "Tags" }), _jsxs("select", { className: "select", value: filters.tagIds?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    tagIds: e.target.value ? [Number(e.target.value)] : undefined
-                                }), children: [_jsx("option", { value: "", children: "All" }), tags?.map((tag) => (_jsx("option", { value: tag.id, children: tag.name }, tag.id)))] })] }), _jsxs("label", { children: [_jsx("div", { children: "Entry Emotion" }), _jsxs("select", { className: "select", value: filters.entryEmotion?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    entryEmotion: e.target.value ? [e.target.value] : undefined
-                                }), children: [_jsx("option", { value: "", children: "Any" }), emotions.map((opt) => (_jsx("option", { value: opt.value, children: opt.label }, opt.value)))] })] }), _jsxs("label", { children: [_jsx("div", { children: "Exit Emotion" }), _jsxs("select", { className: "select", value: filters.exitEmotion?.[0] ?? "", onChange: (e) => onChange({
-                                    ...filters,
-                                    exitEmotion: e.target.value ? [e.target.value] : undefined
-                                }), children: [_jsx("option", { value: "", children: "Any" }), emotions.map((opt) => (_jsx("option", { value: opt.value, children: opt.label }, opt.value)))] })] })] })] }));
+    return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [
+        _jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem" }, children: [
+            _jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Filters" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Narrow records and analytics" })] }),
+            _jsx("button", { className: "btn secondary", type: "button", onClick: onReset, children: "Reset" })
+        ] }),
+        _jsxs("div", { style: { display: "flex", flexDirection: "column", gap: "0.65rem" }, children: [
+            _jsxs("label", { children: [_jsx("div", { children: "From" }), _jsx("input", { className: "input", type: "date", value: filters.start ? filters.start.slice(0, 10) : "", onChange: (e) => onChange({
+                        ...filters,
+                        start: e.target.value ? new Date(e.target.value).toISOString() : undefined
+                    }) })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "To" }), _jsx("input", { className: "input", type: "date", value: filters.end ? filters.end.slice(0, 10) : "", onChange: (e) => onChange({
+                        ...filters,
+                        end: e.target.value ? new Date(e.target.value).toISOString() : undefined
+                    }) })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Symbol" }), _jsx("input", { className: "input", placeholder: "AAPL", value: filters.symbols?.[0] ?? "", onChange: (e) => onChange({
+                        ...filters,
+                        symbols: e.target.value ? [e.target.value] : undefined
+                    }) })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Account" }), _jsxs("select", { className: "select", value: filters.accountTypes?.[0] ?? "", onChange: (e) => onChange({
+                        ...filters,
+                        accountTypes: e.target.value ? [e.target.value] : undefined
+                    }), children: [
+                        _jsx("option", { value: "", children: "Any" }),
+                        _jsx("option", { value: "live", children: "Live" }),
+                        _jsx("option", { value: "sim", children: "Sim" })
+                    ] })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Result" }), _jsxs("select", { className: "select", value: filters.results?.[0] ?? "", onChange: (e) => onChange({
+                        ...filters,
+                        results: e.target.value ? [e.target.value] : undefined
+                    }), children: [
+                        _jsx("option", { value: "", children: "Any" }),
+                        _jsx("option", { value: "takeProfit", children: "Take Profit" }),
+                        _jsx("option", { value: "stopLoss", children: "Stop Loss" }),
+                        _jsx("option", { value: "breakeven", children: "Breakeven" }),
+                        _jsx("option", { value: "manualExit", children: "Manual Exit" })
+                    ] })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Complied" }), _jsxs("select", { className: "select", value: filters.complied === undefined ? "" : filters.complied ? "yes" : "no", onChange: (e) => {
+                        const v = e.target.value;
+                        onChange({
+                            ...filters,
+                            complied: v === "" ? undefined : v === "yes"
+                        });
+                    }, children: [
+                        _jsx("option", { value: "", children: "Any" }),
+                        _jsx("option", { value: "yes", children: "Yes" }),
+                        _jsx("option", { value: "no", children: "No" })
+                    ] })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Setup" }), _jsxs("select", { className: "select", value: filters.setupIds?.[0] ?? "", onChange: (e) => onChange({
+                        ...filters,
+                        setupIds: e.target.value ? [Number(e.target.value)] : undefined
+                    }), children: [
+                        _jsx("option", { value: "", children: "All" }),
+                        setups?.map((setup) => (_jsx("option", { value: setup.id, children: setup.name }, setup.id)))
+                    ] })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Tags" }), _jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }, children: [
+                        _jsx("div", { style: { display: "flex", gap: "0.4rem", flexWrap: "wrap", flex: 1 }, children: selectedTags.length === 0 ? (_jsx("span", { className: "pill", style: { background: "#eef2ff", border: "1px solid #e6e9f0" }, children: "All tags" })) : (selectedTags.map((tag) => (_jsx("span", { className: "pill", style: { background: "#eef2ff", border: "1px solid #e6e9f0" }, children: tag.name }, tag.id)))) }),
+                        _jsx("button", { type: "button", className: "btn secondary", style: { padding: "0.35rem 0.6rem" }, onClick: () => setTagMenuOpen((o) => !o), children: tagMenuOpen ? "Close" : "Select" })
+                    ] }), tagMenuOpen && (_jsxs("div", { className: "card", style: { marginTop: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.4rem", background: "#f7f8fb" }, children: [
+                        _jsx("button", { type: "button", className: "btn secondary", style: { padding: "0.35rem 0.6rem" }, onClick: () => {
+                                onChange({ ...filters, tagIds: undefined });
+                                setTagMenuOpen(false);
+                            }, children: "All tags" }),
+                        tags?.map((tag) => {
+                            const selected = selectedTagIds.includes(tag.id);
+                            return (_jsx("button", { type: "button", onClick: () => toggleTag(tag.id), style: {
+                                    padding: "0.35rem 0.6rem",
+                                    borderRadius: "999px",
+                                    border: "1px solid #d5d9e3",
+                                    background: selected ? "#2563eb" : "#fff",
+                                    color: selected ? "#fff" : "#111827",
+                                    cursor: "pointer"
+                                }, children: tag.name }, tag.id));
+                        })
+                    ] }))] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Entry Emotion" }), _jsxs("select", { className: "select", value: filters.entryEmotion?.[0] ?? "", onChange: (e) => onChange({
+                        ...filters,
+                        entryEmotion: e.target.value ? [e.target.value] : undefined
+                    }), children: [
+                        _jsx("option", { value: "", children: "Any" }),
+                        emotions.map((opt) => (_jsx("option", { value: opt.value, children: opt.label }, opt.value)))
+                    ] })] }),
+            _jsxs("label", { children: [_jsx("div", { children: "Exit Emotion" }), _jsxs("select", { className: "select", value: filters.exitEmotion?.[0] ?? "", onChange: (e) => onChange({
+                        ...filters,
+                        exitEmotion: e.target.value ? [e.target.value] : undefined
+                    }), children: [
+                        _jsx("option", { value: "", children: "Any" }),
+                        emotions.map((opt) => (_jsx("option", { value: opt.value, children: opt.label }, opt.value)))
+                    ] })] })
+        ] })
+    ] }));
 }
+
 function AnalyticsPanel({ summary, loading, tagRows, setupRows }) {
     return (_jsxs("div", { className: "card", style: { display: "flex", flexDirection: "column", gap: "0.75rem" }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: "Analysis" }), _jsx("div", { style: { opacity: 0.65, fontSize: "0.9rem" }, children: "Updates instantly with filters" })] }), loading && _jsx("div", { children: "Loading..." }), summary && (_jsxs("div", { className: "analytics-grid", children: [_jsx(Stat, { label: "Trades", value: summary.totalTrades }), _jsx(Stat, { label: "Win Rate", value: `${(summary.winRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: ">= 1R Rate", value: `${(summary.gte1RRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "<= -1R Rate", value: `${(summary.lteNeg1RRate * 100).toFixed(1)}%` }), _jsx(Stat, { label: "Profit Factor", value: summary.profitFactor }), _jsx(Stat, { label: "Expectancy (R)", value: summary.expectancy }), _jsx(Stat, { label: "Avg R", value: summary.avgR }), _jsx(Stat, { label: "Avg Win R", value: summary.avgWinR }), _jsx(Stat, { label: "Avg Loss R", value: summary.avgLossR }), _jsx(Stat, { label: "Payoff Ratio", value: summary.payoffRatio })] })), _jsx(Breakdown, { title: "Top Setups", rows: setupRows }), _jsx(Breakdown, { title: "Top Tags", rows: tagRows })] }));
 }
