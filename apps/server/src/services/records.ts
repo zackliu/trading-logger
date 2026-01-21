@@ -443,7 +443,7 @@ export function listRecords(
 
   const rows = sqlite
     .prepare(
-      `SELECT * FROM records r WHERE ${where} ORDER BY r.datetime DESC LIMIT ? OFFSET ?`
+      `SELECT * FROM records r WHERE ${where} ORDER BY r.datetime DESC, r.id DESC LIMIT ? OFFSET ?`
     )
     .all(...params, limit, offset) as RecordRow[];
 

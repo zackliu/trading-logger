@@ -3,9 +3,11 @@ import RecordsPage from "./pages/RecordsPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import SettingsTagsPage from "./pages/SettingsTagsPage";
 import SettingsFieldsPage from "./pages/SettingsFieldsPage";
+import ChartsPage from "./pages/ChartsPage";
 
 const navItems = [
   { to: "/records", label: "Journal" },
+  { to: "/charts", label: "Charts" },
   { to: "/settings/tags", label: "Settings" }
 ];
 
@@ -51,7 +53,8 @@ export default function App() {
           <Route path="/" element={<RecordsPage />} />
           <Route path="/records" element={<RecordsPage />} />
           <Route path="/records/:id" element={<RecordDetailPage />} />
-          <Route path="/analysis" element={<RecordsPage />} />
+          <Route path="/analysis" element={<ChartsPage />} />
+          <Route path="/charts" element={<ChartsPage />} />
           <Route path="/settings/tags" element={<SettingsTagsPage />} />
           <Route path="/settings/fields" element={<SettingsFieldsPage />} />
         </Routes>

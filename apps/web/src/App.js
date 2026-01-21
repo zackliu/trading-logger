@@ -4,8 +4,10 @@ import RecordsPage from "./pages/RecordsPage";
 import RecordDetailPage from "./pages/RecordDetailPage";
 import SettingsTagsPage from "./pages/SettingsTagsPage";
 import SettingsFieldsPage from "./pages/SettingsFieldsPage";
+import ChartsPage from "./pages/ChartsPage";
 const navItems = [
     { to: "/records", label: "Journal" },
+    { to: "/charts", label: "Charts" },
     { to: "/settings/tags", label: "Settings" }
 ];
 export default function App() {
@@ -20,5 +22,5 @@ export default function App() {
                                     background: isActive ? "rgba(0,113,227,0.12)" : "rgba(255,255,255,0.7)",
                                     borderColor: isActive ? "rgba(0,113,227,0.4)" : "#d5dbe7",
                                     color: "#0b1d32"
-                                }), children: item.label }, item.to))) })] }) }), _jsx("main", { className: "container", style: { paddingTop: "1.5rem" }, children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(RecordsPage, {}) }), _jsx(Route, { path: "/records", element: _jsx(RecordsPage, {}) }), _jsx(Route, { path: "/records/:id", element: _jsx(RecordDetailPage, {}) }), _jsx(Route, { path: "/analysis", element: _jsx(RecordsPage, {}) }), _jsx(Route, { path: "/settings/tags", element: _jsx(SettingsTagsPage, {}) }), _jsx(Route, { path: "/settings/fields", element: _jsx(SettingsFieldsPage, {}) })] }) })] }));
+                                }), children: item.label }, item.to))) })] }) }), _jsx("main", { className: "container", style: { paddingTop: "1.5rem" }, children: _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(RecordsPage, {}) }), _jsx(Route, { path: "/records", element: _jsx(RecordsPage, {}) }), _jsx(Route, { path: "/records/:id", element: _jsx(RecordDetailPage, {}) }), _jsx(Route, { path: "/analysis", element: _jsx(ChartsPage, {}) }), _jsx(Route, { path: "/charts", element: _jsx(ChartsPage, {}) }), _jsx(Route, { path: "/settings/tags", element: _jsx(SettingsTagsPage, {}) }), _jsx(Route, { path: "/settings/fields", element: _jsx(SettingsFieldsPage, {}) })] }) })] }));
 }

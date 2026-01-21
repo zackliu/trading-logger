@@ -387,5 +387,5 @@ export default function RecordForm({ initial, tags, setups, customFields, compli
                                     alignItems: "center",
                                     justifyContent: "center",
                                     boxShadow: "0 6px 16px rgba(0,0,0,0.35)"
-                                }, "aria-label": "Remove attachment", children: "\u00C3\u2014" })] }))] }), _jsxs("div", { style: { marginTop: "1rem", display: "flex", gap: "0.5rem" }, children: [_jsx("button", { className: "btn", type: "submit", children: "Save" }), onCancel && (_jsx("button", { className: "btn secondary", type: "button", onClick: onCancel, children: "Cancel" }))] })] }));
+                                }, "aria-label": "Remove attachment", children: "\u00D7" })] }))] }), _jsxs("div", { style: { marginTop: "1rem", display: "flex", gap: "0.5rem" }, children: [_jsx("button", { className: "btn", type: "submit", children: "Save" }), onCancel && (_jsx("button", { className: "btn secondary", type: "button", onClick: onCancel, children: "Cancel" }))] })] }));
 }

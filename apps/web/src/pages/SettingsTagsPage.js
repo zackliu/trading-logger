@@ -180,7 +180,7 @@ export default function SettingsTagsPage() {
                                 padding: "0.5rem 0",
                                 borderTop: "1px solid #e6e9f0"
                             }, children: [_jsxs("div", { children: [_jsx("div", { style: { fontWeight: 700 }, children: c.label }), _jsxs("div", { style: { opacity: 0.7, fontSize: "0.9rem" }, children: [c.type === "checkbox" ? "Checkbox" : "Setup", " ", c.type === "setup" && c.options?.length
-                                                    ? `\u2022 ${c.options.map((o) => o.label).join(", ")}`
+                                                    ? `• ${c.options.map((o) => o.label).join(", ")}`
                                                     : ""] })] }), _jsxs("div", { style: { display: "flex", gap: "0.4rem" }, children: [_jsx("button", { className: "btn secondary", onClick: () => setEditingCheck({
                                                 id: c.id,
                                                 label: c.label,

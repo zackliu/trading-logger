@@ -172,7 +172,9 @@ function FilterPanel({ filters, tags, setups, onChange }) {
     const selectedTags = tags.filter((t) => selectedTagIds.includes(t.id));
     const toggleTag = (id) => {
         const current = filters.tagIds ?? [];
-        const next = current.includes(id) ? current.filter((t) => t !== id) : [...current, id];
+        const next = current.includes(id)
+            ? current.filter((t) => t !== id)
+            : [...current, id];
         onChange({
             ...filters,
             tagIds: next.length ? next : undefined
